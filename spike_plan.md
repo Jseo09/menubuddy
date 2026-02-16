@@ -112,6 +112,7 @@ Within **10–20 days**, build a working prototype that:
 - Implement a more stringent grounding prompt.
 - Add answer validation (check item names against retrieved items).
 - Decrease the context window size to enhance response precision.
+- Cite specific item or line from scraped menu explicitly stating the criteria of request.
 
 ### If API cost or latency is too high:
 
