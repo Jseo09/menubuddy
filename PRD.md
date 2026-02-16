@@ -1,21 +1,6 @@
 # Problems + Target Users
 
-Restaurant menus frequently present comprehension challenges due to:
-
-- Small font sizes  
-- Ambiguous descriptions  
-- Insufficient accessibility features  
-- Language barriers  
-
-Seniors, individuals with visual impairments, non-English speakers, and diners with dietary restrictions often struggle to efficiently identify safe and appropriate menu options.
-
-These challenges can lead to:
-
-- User frustration  
-- Potential safety risks (e.g., allergen exposure)  
-- Increased demands on restaurant staff for clarification  
-
-**Menu Buddy** aims to enhance menu accessibility, clarity, and safety through AI-powered question answering.
+Restaurant menus frequently present comprehension challenges due to small font sizes, ambiguous descriptions, insufficient accessibility features, and language barriers. Seniors, individuals with visual impairments, non-English speakers, and diners with dietary restrictions often encounter difficulties identifying safe and appropriate menu options efficiently. These challenges contribute to user frustration, potential safety risks such as allergen exposure, and increased demands on restaurant staff to clarify menu items. Menu Buddy seeks to address these issues by enhancing menu accessibility, clarity, and safety through the implementation of AI-powered question answering.
 
 ---
 
@@ -23,161 +8,171 @@ These challenges can lead to:
 
 The primary objective of Menu Buddy is to enhance menu accessibility and safety by providing accurate, evidence-based AI-powered question answering.
 
-## 1. Answer Accuracy (Grounded Q&A Quality)
+Success will be measured using the following outcomes:
 
-- ≥85% of menu-related questions answered correctly  
-- Answers must rely exclusively on extracted menu data (validated manually)  
-- Hallucination rate <10% during testing  
+## Answer Accuracy (Grounded Question and Answer Quality)
 
-## 2. Time Saved per User Task
+At least 85% of menu-related questions should be answered correctly, relying exclusively on extracted menu data as validated through manual evaluation.
 
-- Users locate relevant menu information in **<30 seconds on average**
-- Compared to manual menu scanning
+The hallucination rate, defined as answers not supported by menu text, should be reduced to below 10% during testing.
 
-## 3. User Satisfaction and Usability
+## Time Saved per User Task
 
-- Average satisfaction score ≥4/5 (pilot survey)
-- ≥70% of test users report easier menu navigation
+Users should be able to locate relevant menu information in under 30 seconds on average, compared to manual menu scanning.
+
+## User Satisfaction and Usability
+
+Achieve an average user satisfaction score of 4 out of 5 or higher in small pilot testing (survey-based feedback).
+
+At least 70% of test users should report that Menu Buddy facilitated easier menu navigation.
 
 ---
 
 # MVP User Stories
 
-- **Senior diner**  
-  As a senior diner, I want to ask simple questions in clear language so I can understand available dishes without reading small or complex text.
+- As a senior diner, I want to ask straightforward questions about the menu in clear language, so that I can efficiently understand which dishes are available without needing to read small or complex text.
 
-- **Non-English speaker**  
-  As a non-English speaker, I want to ask questions in my preferred language so I can understand menu options without language barriers.
+- As a non-English speaker, I want to ask questions in my preferred language, so that I can comprehend menu options without encountering language barriers.
 
-- **Visually impaired user**  
-  As a visually impaired user, I want the system to read aloud or summarize menu items clearly so I can independently access menu information.
+- As a visually impaired user, I want the system to read aloud or summarize menu items clearly, so that I can independently access menu information.
 
-- **Diner with food allergies**  
-  As a diner with allergies, I want to ask whether a dish contains specific ingredients so I can avoid unsafe food choices.
+- As a diner with food allergies, I want to inquire whether a dish contains specific ingredients, so that I can avoid making unsafe food choices.
 
-- **Health-conscious diner**  
-  As a health-conscious diner, I want recommendations based on dietary preferences (e.g., vegetarian, low-carb) so I can choose appropriate meals.
+- As a health-conscious diner, I want to receive recommendations based on dietary preferences such as vegetarian or low-carbohydrate options, so that I can select meals that align with my needs.
 
-- **Restaurant staff member**  
-  As a restaurant staff member, I want common menu questions answered automatically so I can reduce repetitive explanations.
+- As a restaurant staff member, I want the system to automatically answer common menu questions, so that I can minimize repetitive explanations and concentrate on providing service.
 
 ---
 
-# MVP Scope vs Non-Goals
+# MVP Scopes vs Non.Goals
 
-## In Scope (MVP)
+## Menu Extraction & Cleaning
 
-### Menu Extraction & Cleaning
-- Scrape and extract menu text from webpages  
-- Structure into usable data (dish names, descriptions, categories)
+The system scrapes and extracts menu text from webpages, structuring it into usable data such as dish names, descriptions, and categories.
 
-### LLM + RAG-Based Q&A
-- Answer natural-language questions  
-- Responses grounded exclusively in extracted menu data  
+## LLM + RAG-Based Q&A
 
-### Basic Dietary & Allergy Keyword Handling
-- Handle common queries (vegetarian, gluten, nuts, etc.)
-- Only use explicitly available menu information  
+The system answers natural-language questions from users, providing responses grounded exclusively in the extracted menu data.
 
-### Simple Recommendation Logic
-- Recommend items based on query preferences (e.g., spicy, vegetarian)
+## Basic Dietary & Allergy Keyword Handling
 
-### Basic Web Interface
-- Text input box  
-- Answer display  
-- Python backend integration  
+The system responds to common dietary and allergy-related questions, such as those concerning vegetarian options, gluten, or nuts, using available menu information.
 
-### QR Code Menu Access
-- Users access menu webpage via QR code scan  
+## Simple Recommendation Logic
 
----
+The system recommends menu items based on user preferences specified in the query, such as spiciness or vegetarian options.
 
-## Nice to Have
+## Basic Web Interface
 
-- Multi-language translation support  
-- Voice input and output  
-- Popularity-based ranking for recommendations  
-- Persistent database caching  
-- Accessibility enhancements (large font toggle, high contrast mode)
+A basic web interface provides a text input box and answer display, connected to the Python backend.
+
+## QR Code Menu Access
+
+Users access a restaurant’s public menu webpage by scanning a QR code.
 
 ---
 
-## Explicit Non-Goals
+# Nice to Have
 
-- **Full Restaurant Management Integration**  
-  No POS or internal database integration  
+- Support for multi-language translation of menu questions and responses.
 
-- **Guaranteed Allergen Certification**  
-  No medical-grade allergen verification  
-  Users must confirm with staff  
+- Enable voice input and output to improve accessibility.
 
-- **Personal User Accounts or Data Storage**  
-  No collection or storage of personal data  
+- Implement popularity-based ranking for menu recommendations.
 
-- **Automated Menu Updates Across All Restaurants**  
-  Limited to selected test webpages  
+- Utilize persistent database caching to retain menus across user sessions.
 
-- **Advanced Nutrition Calculations**  
-  Calories/macros only shown if explicitly listed in menu  
+- Provide user interface accessibility enhancements, including a large font toggle and high contrast mode.
+
+---
+
+# Explicit Non-Goals 
+
+## Full Restaurant Management Integration
+
+Integration with POS systems or internal restaurant databases is not supported by the system.
+
+## Guaranteed Allergen Certification
+
+Verification or guarantee of medical-level allergen accuracy is not provided. Users are required to confirm allergen information with restaurant staff.
+
+## Personal User Accounts or Data Storage
+
+Collection or storage of personal user data is not included in the MVP.
+
+## Automated Menu Updates Across All Restaurants
+
+The MVP is limited to operation with selected public menu webpages designated for testing purposes.
+
+## Advanced Nutrition Calculations (Calories, Macros)
+
+Nutritional information will only be presented if it is explicitly provided within the menu.
 
 ---
 
 # Acceptance Criteria
 
-## 1. End-to-End QR → Answer Flow
+## End-to-End QR → Answer Flow
 
-- User scans QR code  
-- Menu webpage loads successfully  
-- ≥80% of visible menu items extracted and structured  
-- Users submit natural-language questions  
-- Response generated within **5 seconds**
+Allow the user to scan a QR code and successfully load the restaurant’s menu webpage.
 
-System fails if:
-- It crashes  
-- It times out  
-- It does not respond  
+Extract and accurately structure a minimum of 80% of visible menu items from the webpage.
 
----
+Permit users to submit natural-language questions via the web interface.
 
-## 2. Grounded Menu Q&A (RAG Behavior)
+Generate a menu-based response within five seconds of question submission.
 
-- Answers generated exclusively from extracted menu data  
-- ≥85% of evaluated test questions answered correctly  
-- Hallucination rate <10%  
-- Fail if referencing items not present in extracted data  
+The system is considered to have failed if it crashes, times out, or does not respond.
 
 ---
 
-## 3. Allergy & Dietary Handling
+## Grounded Menu Q&A (RAG Behavior)
 
-- Users can ask ingredient/allergen questions  
-- If allergen info missing, respond:  
-  > “The menu does not provide enough information. Please confirm with the restaurant staff.”
+The system is required to generate answers exclusively from the extracted menu data.
 
-- Include safety disclaimer  
-- Must NOT generate unsupported ingredient/allergen info  
+At least 85% of evaluated test questions must yield correct answers derived from the menu data.
 
----
+The hallucination rate, defined as the proportion of answers not supported by menu text, must remain below 10% during testing.
 
-## 4. Basic Recommendation Logic
-
-- Support recommendation queries (e.g., “Recommend a vegetarian dish.”)  
-- Provide 1–3 relevant items  
-- Do not recommend items that conflict with stated preferences  
+The system will be considered to have failed if it references menu items that are not present in the extracted data.
 
 ---
 
-## 5. Error Handling & Edge Cases
+## Allergy & Dietary Handling
 
-- Handle empty/ambiguous questions:  
-  > “Can you clarify your request?”
+Enable users to inquire about ingredients or dietary content, such as asking, “Does this contain nuts?”.
 
-- Safe failure scenarios:
-  - Menu webpage inaccessible  
-  - Extracted data empty  
-  - LLM response unsuccessful  
+If allergen information is absent from the menu, the system must respond as follows:
 
-- Display user-friendly error message instead of crashing  
+> “The menu does not provide enough information. Please confirm with the restaurant staff.”
+
+Incorporate a safety disclaimer in responses to allergy-related inquiries.
+
+The system must not generate ingredient or allergen information that is not explicitly provided in the menu.
+
+---
+
+## Basic Recommendation Logic
+
+Enable users to request recommendations, such as by asking, “Recommend a vegetarian dish.”
+
+Provide one to three relevant menu items that correspond to keywords in the user's request.
+
+Do not provide recommendations if they do not align with the user's stated preferences.
+
+---
+
+## Error Handling & Edge Cases 
+
+Address empty or ambiguous questions by prompting the user for clarification, such as by asking, “Can you clarify your request?”
+
+Implement safe failure protocols in the following scenarios:
+
+- The menu webpage is inaccessible for scraping.
+- The extracted menu data is empty.
+- The large language model (LLM) response is unsuccessful.
+
+In the event of failure, present a user-friendly error message rather than allowing the system to crash.
 
 ---
 
@@ -185,20 +180,25 @@ System fails if:
 
 ## Data Access
 
-- Restaurant menus are publicly accessible and legally scrapable  
-- Menu information is reasonably structured  
-- Allergy/dietary information, when present, is explicit  
-- Users access via smartphones with QR scanning  
+Restaurant menus are typically published on publicly accessible webpages, which can be legally scraped for data collection.
+
+Menu information, including dish names, descriptions, and prices, is generally well-structured and easily readable.
+
+Allergy and dietary information, when available, is explicitly stated within the menu text.
+
+System access will occur through smartphones equipped with QR code scanning capabilities.
 
 ## User Behavior
 
-- Users ask straightforward menu-related questions  
-- AI responses are informational only (not medical advice)
+Users are expected to pose straightforward, menu-related queries, such as questions about ingredients or dish recommendations.
+
+Users are informed that AI-generated responses are intended for informational purposes only and do not constitute medical advice.
 
 ## Technical Feasibility
 
-- LLM and embedding APIs remain accessible  
-- Menu data size is manageable within session constraints  
+The large language model (LLM) and embedding application programming interfaces (APIs) are assumed to remain accessible throughout the development period.
+
+The size of the extracted menu data is assumed to be sufficiently small to allow processing within session constraints.
 
 ---
 
@@ -206,27 +206,28 @@ System fails if:
 
 ## Time Constraints (Milestone 2 Scope)
 
-- Limited number of test restaurant webpages  
-- Advanced features may remain incomplete  
-- MVP prioritizes:
-  - QR scanning  
-  - Data extraction  
-  - Q&A functionality  
+Testing will be limited to a select number of restaurant webpages.
 
----
+Advanced features, including voice interaction, persistent database storage, and comprehensive multi-language support, may remain incomplete within the current scope.
+
+The minimum viable product (MVP) will prioritize core functionality, specifically QR code scanning, data extraction, and question-and-answer features.
 
 ## Ethics & Privacy Limits
 
-- No personal data collection or storage  
-- No medical-grade allergen accuracy  
-- Disclaimer shown for allergy/health inquiries  
-- Only publicly available menu data processed  
+Personal user data will neither be collected nor stored by the system.
 
----
+The system does not provide medical-grade accuracy for allergen information.
+
+A disclaimer will be displayed in response to allergy-related or health-related inquiries.
+
+The system will process only publicly available menu data.
 
 ## Platform & Technical Constraints
 
-- Scraping reliability depends on website structure  
-- LLM API costs and rate limits may restrict testing volume  
-- Scalability depends on hosting environment  
-- Extraction accuracy may decrease for large or poorly formatted menus  
+The reliability of web scraping is contingent upon the structure and formatting of the target websites.
+
+Costs and rate limits associated with large language model (LLM) APIs may restrict the volume of requests during testing.
+
+Scalability may be constrained by the chosen hosting environment, such as local servers or cloud deployments.
+
+Extraction accuracy may decrease when processing large or poorly formatted menus.
