@@ -34,7 +34,7 @@ At least 70% of test users should report that Menu Buddy facilitated easier menu
 
 - As a non-English speaker, I want to ask questions in my preferred language, so that I can comprehend menu options without encountering language barriers.
 
-- As a visually impaired user, I want the system to read aloud or summarize menu items clearly, so that I can independently access menu information.
+- As a visually impaired user, I want the system to read aloud or summarize menu items clearly such as lists ingredients, so that I can independently access menu information.
 
 - As a diner with food allergies, I want to inquire whether a dish contains specific ingredients, so that I can avoid making unsafe food choices.
 
