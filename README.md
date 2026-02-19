@@ -1,5 +1,5 @@
 # MenuBuddy
-# Engineering Spike Plan – Menu Buddy
+# Engineering Spike Plan
 
 ## Riskiest Assumption
 
