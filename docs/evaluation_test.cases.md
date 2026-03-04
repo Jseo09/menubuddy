@@ -51,6 +51,10 @@ Queries 15-20 using menu link: https://www.menuwithprice.com/menu/olive-garden/
 *Use this section to document specific instances where the system refused correctly or where a citation was verified against the source URL.*
 
 * **Refusal Check:** [For query 3, the system correctly refused.]
+* | Query ID | User Query | System Response | Refusal Correct? | Notes |
+|----------|------------|----------------|-----------------|-------|
+| 03 | "I want some tacos, do they have any on their menu?" | "No, tacos are not listed on the menu within the provided context [1, 2, 3, 4, 5]." | Yes | Correctly refused since menu does not list tacos. |
+| 05 | "Do they have a kids menu?" | "The provided context does not contain information about a kids menu [1, 2, 3, 4, 5]." | Yes | Correct refusal since there is no kids menu. |
 
 * **Citation Check:** [Notes on deep-linking to menu sections]
 
