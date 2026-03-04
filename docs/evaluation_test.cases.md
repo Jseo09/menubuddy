@@ -42,7 +42,7 @@ Queries 15-20 using menu link: https://www.menuwithprice.com/menu/olive-garden/
 | :--- | :--- | :--- |:------|
 | **Retrieval Accuracy** | ≥ 85% | |       |
 | **Grounding Accuracy** | 100% | |       |
-| **Hallucination Rate** | 0% | |       |
+| **Hallucination Rate** | 0% | |Only query 19 hallucinated |
 | **Refusal Accuracy** | 100% | |       |
 
 ---
