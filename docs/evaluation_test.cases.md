@@ -52,6 +52,7 @@ Queries 15-20 using menu link: https://www.menuwithprice.com/menu/olive-garden/
 
 * **Refusal Check:**
   * [Query: 03 | "I want some tacos, do they have any on their menu?" | "No, tacos are not listed on the menu within the provided context [1, 2, 3, 4, 5]."  | Correctly refused since menu does not list tacos.]
+  * [Query: 05 | "Do they have a kids menu?" | "The provided context does not contain information about a kids menu [1, 2, 3, 4, 5]." | Correct refusal; no menu data available.]
 
 * **Citation Check:** [Notes on deep-linking to menu sections]
 
