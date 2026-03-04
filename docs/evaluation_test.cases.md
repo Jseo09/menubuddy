@@ -50,10 +50,7 @@ Queries 15-20 using menu link: https://www.menuwithprice.com/menu/olive-garden/
 ## 3. Grounding Verification Log
 *Use this section to document specific instances where the system refused correctly or where a citation was verified against the source URL.*
 
-* **Refusal Check:** [Notes on system behavior for out-of-scope items]
-| Query # | Query | Response | Notes |
-| :--- | :--- | :--- |:------|
-| 3 | "I want some tacos, do they have any?" | "Don't have any" | Correctly refused; menu does not list tacos. |
+* **Refusal Check:** [For query 3, the system correctly refused.]
 
 * **Citation Check:** [Notes on deep-linking to menu sections]
 
