@@ -40,9 +40,9 @@ Queries 15-20 using menu link: https://www.menuwithprice.com/menu/olive-garden/
 
 | Metric | Target | Actual Result | Status |
 | :--- | :--- | :--- |:------|
-| **Retrieval Accuracy** | ≥ 85% | |       |
+| **Retrieval Accuracy** | ≥ 85% | 95% (19/20) |       |
 | **Grounding Accuracy** | 100% | |       |
-| **Hallucination Rate** | 0% | |Only query 19 hallucinated |
+| **Hallucination Rate** | 0% | 5% |Only query 19 hallucinated |
 | **Refusal Accuracy** | 100% | |       |
 
 ---
