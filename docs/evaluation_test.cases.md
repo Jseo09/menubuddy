@@ -51,10 +51,11 @@ Queries 15-20 using menu link: https://www.menuwithprice.com/menu/olive-garden/
 *Use this section to document specific instances where the system refused correctly or where a citation was verified against the source URL.*
 
 * **Refusal Check:**
-  * [Query: 03 | "I want some tacos, do they have any on their menu?" | "No, tacos are not listed on the menu within the provided context [1, 2, 3, 4, 5]."  | Correctly refused since menu does not list tacos.]
-  * [Query: 05 | "Do they have a kids menu?" | "The provided context does not contain information about a kids menu [1, 2, 3, 4, 5]." | Correct refusal; no menu data available.]
+  * [Query: 03 | "I want some tacos, do they have any on their menu?" |Response: "No, tacos are not listed on the menu within the provided context [1, 2, 3, 4, 5]."  |Note: Correctly refused since menu does not list tacos.]
+  * [Query: 05 | "Do they have a kids menu?" |Response: "The provided context does not contain information about a kids menu [1, 2, 3, 4, 5]." |Note: Correct refusal; no menu data available.]
 
-* **Citation Check:** [Notes on deep-linking to menu sections]
+* **Citation Check:**
+  * [Query: 01 | "Can you tell me what classics they have?" |Response: {Classic Caesar Salad, Classic Caesar Salad with Grilled Chicken, Classic Caesar Salad with Grilled Shrimp} |Source: | https://www.menuwithprice.com/menu/red-lobster/ |Verified: All items exist in “Salads” section; prices match.]
 
 ---
 
