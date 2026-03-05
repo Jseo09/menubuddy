@@ -77,6 +77,7 @@ Queries 15-20 using menu link: https://www.menuwithprice.com/menu/olive-garden/
     * The model correctly identified Seafood Alfredo, Shrimp Alfredo, and Shrimp Scampi Lunch, but introduced an extra item.
 * Retrieval accuracy reached 95% (19/20), indicating the system consistently matched expected menu items.
     * Strengths observed were category-based queries meaning that the system successfully retrieved complete lists of menu items within categories.
+    * Categories that were handled correctly: Pizzas (Query 06), Frappuccino drinks (Query 11), Pasta dishes (Query 16), and Appetizers (Query 18).
 * The system demonstrated appropriate refusal behavior when the requested information was absent from the menu context.
     * Example 1: Query 3 asks for tacos and the system correctly stated that tacos are not listed.
     * Example 2: Query 5 asks if theres a kids menu, the system correctly indicated that the context does not contain information about a kids menu.
@@ -89,6 +90,5 @@ Queries 15-20 using menu link: https://www.menuwithprice.com/menu/olive-garden/
 * Some menu items appeared multiple times across different sections.
     * Example: In query 13, the item birthday cakepop appeared twice. This is because source menu lists the item in multiple sections/variants.
 * Certain items can logically belong to multiple categories.
-    * Example: In query 8 for Pizza Hut, cinnamon sticks were returned as an appetizer/side item.
-          * In query 10, cinnamon sticks were returned as a dessert item.
+    * Example: In query 8 for Pizza Hut, cinnamon sticks were returned as an appetizer/side item. In query 10, cinnamon sticks were returned as a dessert item.
     * Cinnamon sticks appears in multiple logical categories depending on context, and the system retrieved it appropriately.
