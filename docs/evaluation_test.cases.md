@@ -86,3 +86,9 @@ Queries 15-20 using menu link: https://www.menuwithprice.com/menu/olive-garden/
     * Example 3: Identical items appearing in multiple menu sections
 * The system handled multi-section menu structures effectively.
     * The retrieval pipeline correctly grouped items based on food categories when responding to user queries.
+* Some menu items appeared multiple times across different sections.
+    * Example: In query 13, the item birthday cakepop appeared twice. This is because source menu lists the item in multiple sections/variants.
+* Certain items can logically belong to multiple categories.
+    * Example: In query 8 for Pizza Hut, cinnamon sticks were returned as an appetizer/side item.
+          * In query 10, cinnamon sticks were returned as a dessert item.
+    * Cinnamon sticks appears in multiple logical categories depending on context, and the system retrieved it appropriately.
