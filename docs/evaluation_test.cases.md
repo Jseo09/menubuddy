@@ -71,4 +71,18 @@ Queries 15-20 using menu link: https://www.menuwithprice.com/menu/olive-garden/
 ---
 
 ## 4. Observations & Notes
-* [Add any edge cases discovered, such as pricing symbols or multi-page menu parsing issues]
+* Hallucination case with query 19:
+    * Question: Do they have any seafood dishes?
+    * Retrieved items included Herb-Grilled Salmon, which was not present in the targeted context used for retrieval.
+    * The model correctly identified Seafood Alfredo, Shrimp Alfredo, and Shrimp Scampi Lunch, but introduced an extra item.
+* Retrieval accuracy reached 95% (19/20), indicating the system consistently matched expected menu items.
+    * Strengths observed were category-based queries meaning that the system successfully retrieved complete lists of menu items within categories.
+* The system demonstrated appropriate refusal behavior when the requested information was absent from the menu context.
+    * Example 1: Query 3 asks for tacos and the system correctly stated that tacos are not listed.
+    * Example 2: Query 5 asks if theres a kids menu, the system correctly indicated that the context does not contain information about a kids menu.
+* Some menu items showed different price formats depending on section or variant.
+    * Example 1: Multiple price points for Frappuccino drinks
+    * Example 2: Variable pricing across Lunch vs Dinner pasta dishes
+    * Example 3: Identical items appearing in multiple menu sections
+* The system handled multi-section menu structures effectively.
+    * The retrieval pipeline correctly grouped items based on food categories when responding to user queries.
