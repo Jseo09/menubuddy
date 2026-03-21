@@ -11,15 +11,6 @@ from embedchain import App
 os.environ["OPENAI_API_KEY"] = "KEY"
 os.environ["GOOGLE_API_KEY"] = "KEY"
 
-
-import os
-import requests
-import PIL.Image
-from bs4 import BeautifulSoup
-import google.generativeai as genai
-from embedchain import App
-
-
 # ---------------------------------------------------
 # HTML Extraction
 # ---------------------------------------------------
