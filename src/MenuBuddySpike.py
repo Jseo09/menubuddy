@@ -11,15 +11,20 @@ from embedchain import App
 os.environ["OPENAI_API_KEY"] = "KEY"
 os.environ["GOOGLE_API_KEY"] = "KEY"
 
+
+import os
+import requests
+import PIL.Image
+from bs4 import BeautifulSoup
+import google.generativeai as genai
+from embedchain import App
+
+
 # ---------------------------------------------------
 # HTML Extraction
 # ---------------------------------------------------
 
 def extract_menu_items_from_html(url, gem_client):
-    """
-    1) Try to parse menu/price directly from HTML
-    2) If parsing fails, fall back to Gemini extraction
-    """
     print(f"\n[PARSING] Accessing: {url}")
 
     headers = {
@@ -32,14 +37,16 @@ def extract_menu_items_from_html(url, gem_client):
 
     try:
         response = requests.get(url, headers=headers, timeout=15)
+
         if response.status_code != 200:
             print(f"[ERROR] Site returned status {response.status_code}")
             return []
 
         soup = BeautifulSoup(response.text, "html.parser")
+
         menu_items = []
 
-        # 1) Custom div structure
+        # Method 1: div layout
         blocks = soup.find_all("div", class_="chooseBar")
         for block in blocks:
             name = block.get("data-food")
@@ -48,122 +55,148 @@ def extract_menu_items_from_html(url, gem_client):
                 clean_price = f"${price}" if "$" not in price else price
                 menu_items.append({"item": name, "price": clean_price})
 
-        # 2) Table structure used by MenuWithPrice
+        # Method 2: table layout
         if not menu_items:
             rows = soup.find_all(
                 "tr",
                 class_=lambda x: x and ("tr-0" in x or "tr-1" in x),
             )
+
             for row in rows:
                 cols = row.find_all("td")
+
                 if len(cols) >= 3:
+
                     name_tag = cols[0].find("span", class_="prc-food-new")
                     price_tag = cols[2]
+
                     if name_tag and price_tag:
+
                         name = name_tag.get_text(strip=True)
                         price = price_tag.get_text(strip=True)
+
                         if name and price:
                             menu_items.append({"item": name, "price": price})
 
-        # 3) Fallback: Gemini text-based extraction
+        # Gemini fallback
         if not menu_items:
-            print("[INFO] Falling back to Gemini Intelligence...")
+
+            print("[INFO] Falling back to Gemini extraction...")
+
             for noise in soup(["script", "style", "nav", "footer", "header", "svg"]):
                 noise.decompose()
+
             clean_text = soup.get_text(separator="\n", strip=True)
 
-            extraction = gem_client.models.generate_content(
+            extraction = gem_client.generate_content(
                 model="models/gemini-2.5-flash",
                 contents=[
                     (
-                        "You are extracting menu items from raw HTML text.\n"
-                        "Return lines in the format 'Item: Price'.\n"
-                        "Do NOT add descriptions.\n\n"
-                        f"{clean_text[:12000]}"
+                        "Extract menu items. Return format 'Item: Price'.\n\n"
+                        + clean_text[:12000]
                     )
                 ],
             )
 
             if extraction and extraction.text:
+
                 for line in extraction.text.split("\n"):
+
                     if ":" in line:
-                        parts = line.split(":", 1)
-                        item = parts[0].strip("- *")
-                        price = parts[1].strip()
-                        if item and price:
-                            menu_items.append({"item": item, "price": price})
+
+                        item, price = line.split(":", 1)
+
+                        menu_items.append({
+                            "item": item.strip(),
+                            "price": price.strip()
+                        })
 
         return menu_items
 
     except Exception as e:
-        print(f"[ERROR] Scraper failed: {e}")
+        print("[ERROR] Scraper failed:", e)
         return []
 
 
 # ---------------------------------------------------
-# RETRIEVAL + CITATION
+# Retrieval
 # ---------------------------------------------------
 
 def retrieve_menu_context(app, question, num_documents=5):
+
     try:
         results = app.search(question, num_documents=num_documents)
     except Exception as e:
-        print(f"[ERROR] Retrieval failed: {e}")
+        print("[ERROR] Retrieval failed:", e)
         return []
 
     contexts = []
+
     for idx, res in enumerate(results, start=1):
+
         text = res.get("context", "") or ""
         metadata = res.get("metadata", {}) or {}
+
         source = (
             metadata.get("source")
             or metadata.get("url")
             or metadata.get("data_value")
             or "menu_data"
         )
+
         if text.strip():
-            contexts.append(
-                {"id": idx, "text": text.strip(), "source": source}
-            )
+
+            contexts.append({
+                "id": idx,
+                "text": text.strip(),
+                "source": source
+            })
+
     return contexts
 
 
 def build_context_block(contexts):
+
     lines = []
+
     for c in contexts:
         lines.append(f"[{c['id']}] {c['text']} (SOURCE: {c['source']})")
+
     return "\n".join(lines)
 
 
+# ---------------------------------------------------
+# Generation
+# ---------------------------------------------------
+
 def generate_grounded_answer(gem_client, question, context_block):
+
     prompt = f"""
-You are MenuBuddy, a menu question answering assistant.
+You are MenuBuddy.
 
-You are given menu context, each line has an ID.
+Use ONLY the context below.
 
-RULES:
-- Use ONLY context to answer.
-- If answer is not in context, say: "I don't know based on the menu data."
-- Every factual claim must include a citation [ID].
-- Do NOT invent menu items or prices.
-
-Menu context:
+Context:
 {context_block}
 
-User question:
+Question:
 {question}
 
-Provide a concise answer with citations.
-    """.strip()
+Cite sources like [1].
+"""
 
-    resp = gem_client.models.generate_content(
-        model="models/gemini-2.5-flash",
-        contents=[prompt],
-    )
+    model = gem_client.GenerativeModel("models/gemini-2.5-flash")
+
+    resp = model.generate_content(prompt)
+
     return (resp.text or "").strip()
 
 
+# ---------------------------------------------------
+# Verification
+# ---------------------------------------------------
 def verify_answer_against_context(gem_client, answer, context_block):
+
     prompt = f"""
 You are a strict fact-checking assistant.
 
@@ -173,41 +206,35 @@ Context:
 Answer:
 {answer}
 
-Tasks:
-1. Identify unsupported claims.
-2. If all claims are supported, say so.
-3. Output exactly one final line:
-   VERDICT: OK
-   or
-   VERDICT: UNSUPPORTED
-    """
+Check if every claim in the answer is supported by the context.
 
-    resp = gem_client.models.generate_content(
-        model="models/gemini-2.5-flash",
-        contents=[prompt],
-    )
-    full_text = (resp.text or "").strip()
+Output exactly one line:
 
-    verdict_line = "VERDICT: UNKNOWN"
-    for line in reversed([l.strip() for l in full_text.splitlines() if l.strip()]):
-        if line.upper().startswith("VERDICT:"):
-            verdict_line = line.upper()
-            break
+VERDICT: OK
+or
+VERDICT: UNSUPPORTED
+"""
 
-    return full_text, verdict_line
+    model = gem_client.GenerativeModel("models/gemini-2.5-flash")
+
+    resp = model.generate_content(prompt)
+
+    return (resp.text or "").strip()
 
 
 # ---------------------------------------------------
-# MAIN RAG FUNCTION
+# MAIN PROGRAM
 # ---------------------------------------------------
 
 def menubuddy_basic_rag():
+
     api_key = os.environ.get("GOOGLE_API_KEY")
+
     if not api_key:
-        print("[ERROR] GOOGLE_API_KEY environment variable not set.")
+        print("[ERROR] GOOGLE_API_KEY not set")
         return
 
-    gem_client = genai.Client(api_key=api_key)
+    genai.configure(api_key=api_key)
 
     config = {
         "llm": {
@@ -226,43 +253,105 @@ def menubuddy_basic_rag():
 
     app = App.from_config(config=config)
 
-    print("\n=== MenuBuddy Basic RAG (Grounded + Fact-Checked) ===")
+    print("\n=== MenuBuddy Basic RAG ===")
+
     mode = input("Import menu (1=URL, 2=Image): ").strip()
 
-    if mode == "1":
-        url = input("Enter menu URL: ").strip()
-        if not url:
-            print("[ERROR] Empty URL.")
-            return
 
-        menu_items = extract_menu_items_from_html(url, gem_client)
+# ---------------------------------------------------
+# URL MODE (UNCHANGED)
+# ---------------------------------------------------
+
+    if mode == "1":
+
+        url = input("Enter menu URL: ").strip()
+
+        menu_items = extract_menu_items_from_html(url, genai)
 
         if menu_items:
-            print(f"\n[OK] Extracted {len(menu_items)} items.")
-            formatted = "\n".join([f"{m['item']} - {m['price']}" for m in menu_items])
+
+            formatted = "\n".join(
+                [f"{m['item']} - {m['price']}" for m in menu_items]
+            )
 
             app.add(
                 formatted,
                 data_type="text",
                 metadata={"source": url, "type": "menu_text"},
             )
+
             print("\n[SUCCESS] Menu added to vector DB.")
+
         else:
-            print("\n[!] No menu items extracted.")
+
+            print("[!] No menu items extracted.")
             return
 
+
+# ---------------------------------------------------
+# IMAGE MODE (FIXED QR SUPPORT)
+# ---------------------------------------------------
+
     elif mode == "2":
+
         path = input("Enter image path: ").strip()
+
         try:
+
+            import cv2
+            from pyzbar.pyzbar import decode
+
+            img_cv = cv2.imread(path)
+
+            if img_cv is None:
+                print("[ERROR] Image not found")
+                return
+
+            print("Image shape:", img_cv.shape)
+
+            qr_url = ""
+
+            qr_results = decode(PIL.Image.open(path))
+
+            if qr_results:
+                qr_url = qr_results[0].data.decode("utf-8")
+
+            print("QR result:", qr_url)
+
+            # QR → scrape menu
+            if qr_url.startswith("http"):
+
+                print("\n[QR CODE DETECTED]")
+                print(qr_url)
+
+                menu_items = extract_menu_items_from_html(qr_url, genai)
+
+                if menu_items:
+
+                    formatted = "\n".join(
+                        [f"{m['item']} - {m['price']}" for m in menu_items]
+                    )
+
+                    app.add(
+                        formatted,
+                        data_type="text",
+                        metadata={"source": qr_url, "type": "menu_qr"},
+                    )
+
+                    print("\n[SUCCESS] Menu added from QR URL.")
+
+            # Original OCR fallback
             img = PIL.Image.open(path)
-            vision_resp = gem_client.models.generate_content(
-                model="models/gemini-2.5-flash",
-                contents=[
-                    "Extract menu items and prices. Format: Item: Price.",
-                    img,
-                ],
-            )
+
+            model = genai.GenerativeModel("models/gemini-2.5-flash")
+
+            vision_resp = model.generate_content([
+                "Extract menu items and prices. Format: Item: Price.",
+                img
+            ])
+
             vision_text = (vision_resp.text or "").strip()
+
             if not vision_text:
                 print("[ERROR] Empty vision output.")
                 return
@@ -272,40 +361,54 @@ def menubuddy_basic_rag():
                 data_type="text",
                 metadata={"source": path, "type": "menu_image_ocr"},
             )
+
             print("\n[OK] Image menu added to vector DB.")
+
         except Exception as e:
+
             print(f"[ERROR] Vision extraction failed: {e}")
             return
+
 
     else:
         print("[ERROR] Invalid mode.")
         return
 
+
+# ---------------------------------------------------
+# QUESTION LOOP
+# ---------------------------------------------------
+
     print("\nYou can now ask questions about the menu.")
-    print("Type 'exit' or 'quit' to stop.\n")
+    print("Type 'exit' to stop.\n")
 
     while True:
+
         q = input("Ask about the menu: ").strip()
+
         if q.lower() in ["exit", "quit"]:
             break
-        if not q:
-            continue
 
-        contexts = retrieve_menu_context(app, q, num_documents=5)
+        contexts = retrieve_menu_context(app, q)
+
         if not contexts:
-            print("\n[INFO] No context found.")
+            print("[INFO] No context found.")
             continue
 
         context_block = build_context_block(contexts)
-        answer = generate_grounded_answer(gem_client, q, context_block)
-        verification_text, verdict = verify_answer_against_context(
-            gem_client, answer, context_block
+
+        answer = generate_grounded_answer(genai, q, context_block)
+
+        verification = verify_answer_against_context(
+            genai,
+            answer,
+            context_block
         )
 
         print("\n---------------- MENU BUDDY ANSWER ----------------")
         print(answer)
         print("---------------------------------------------------")
-        print(f"[Verification] {verdict}\n")
+        print(verification)
 
 
 if __name__ == "__main__":
