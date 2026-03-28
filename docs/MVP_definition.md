@@ -98,4 +98,4 @@ System response:
 
 If information is missing:
 
-> “The menu does not provide enough information. Please confirm with restaurant staff.”
+> “Refusal Reason: I found some information, but it couldn't be verified against the menu data..Please try rephrasing or ask about a different item”
