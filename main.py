@@ -1,97 +1,110 @@
 import os
-import PIL.Image
-import google.genai as genai
 from dotenv import load_dotenv
 
-# Import your custom modules
-from src.scraper import extract_menu_items_from_html
-from src.retrieval import setup_rag_app, retrieve_menu_context
-from src.citation_formatter import build_context_block
-from src.generator import generate_grounded_answer
-from src.validator import verify_answer_against_context
+# Import the logic we built for the Flask app
+from src.scraper import extract_menu_data
+from haystack import Pipeline, Document
+from haystack.components.preprocessors import DocumentCleaner, DocumentSplitter
+from haystack.components.builders import ChatPromptBuilder
+from haystack.dataclasses import ChatMessage
+
+# 2026 Integrations
+from haystack_integrations.document_stores.chroma import ChromaDocumentStore
+from haystack_integrations.components.retrievers.chroma import ChromaQueryTextRetriever
+from haystack_integrations.components.generators.google_genai import GoogleGenAIChatGenerator
+
+
+def setup_pipeline():
+    """Initializes the persistent storage and RAG pipeline."""
+    document_store = ChromaDocumentStore(persist_path="./chroma_db")
+
+    # Components
+    retriever = ChromaQueryTextRetriever(document_store=document_store)
+    genai_chat = GoogleGenAIChatGenerator(model="gemini-3.1-flash-lite-preview")
+    prompt_builder = ChatPromptBuilder()
+
+    # Build Pipeline
+    pipe = Pipeline()
+    pipe.add_component("prompt_builder", prompt_builder)
+    pipe.add_component("genai", genai_chat)
+    pipe.connect("prompt_builder.prompt", "genai.messages")
+
+    return document_store, retriever, pipe
 
 
 def main():
     load_dotenv()
-    client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
-    app = setup_rag_app()
+    doc_store, retriever, pipe = setup_pipeline()
+    cleaner = DocumentCleaner()
+    splitter = DocumentSplitter(split_by="word", split_length=150, split_overlap=20)
 
-    print("\n=== MenuBuddy: Modular Edition ===")
-    print("[SYSTEM] RAG Pipeline Initialized.")
-    choice = input("Import menu (1=URL, 2=Image): ").strip()
+    print("\n=== MenuBuddy: Modular CLI (v3.1) ===")
+    choice = input("Import menu (1=URL, 2=Image, 3=Skip to Chat): ").strip()
 
-    # --- STAGE 1: DATA INGESTION (Deterministic) ---
-    if choice == "1":
-        url = input("Enter menu URL: ").strip()
-        print(f"\n[DETERMINISTIC STAGE: SCRAPING] Extracting structured data from {url}...")
-        menu_items = extract_menu_items_from_html(url, client)
+    # --- STAGE 1: DATA INGESTION ---
+    if choice in ["1", "2"]:
+        source = input("Enter URL or Image Path: ").strip()
+        print(f"\n[STAGE: INGESTION] Processing {source} with Docling...")
 
-        if menu_items:
-            # Transparency: Show the structured data extracted before vectorization
-            print(f"--- STORED STRUCTURED DATA ({len(menu_items)} items) ---")
-            for m in menu_items[:3]:  # Show a sample for transparency
-                print(f"DEBUG: Found '{m['item']}' at {m['price']}")
+        raw_markdown = extract_menu_data(source)
 
-            formatted = "\n".join([f"{m['item']} - {m['price']}" for m in menu_items])
-            app.add(formatted, data_type="text", metadata={"source": url})
-            print(f"[OK] Menu data vectorized and stored in ChromaDB.")
+        if raw_markdown:
+            doc = Document(content=raw_markdown, meta={"source": source})
+            # Clean and Chunk for ChromaDB
+            cleaned = cleaner.run(documents=[doc])
+            chunks = splitter.run(documents=cleaned["documents"])
+
+            doc_store.write_documents(chunks["documents"])
+            print(f"[OK] {len(chunks['documents'])} chunks saved to local ChromaDB.")
         else:
-            print("[ERROR] No items found at that URL.")
+            print("[ERROR] Could not process source.")
             return
 
-    elif choice == "2":
-        path = input("Enter image path: ").strip()
-        print(f"\n[GENERATIVE STAGE: VISION OCR] Processing image at {path}...")
-        try:
-            img = PIL.Image.open(path)
-            vision_resp = client.models.generate_content(
-                model="gemini-1.5-flash",
-                contents=["Extract menu items and prices. Format: Item: Price.", img],
-            )
-            app.add(vision_resp.text, data_type="text", metadata={"source": path})
-            print("[OK] Image menu processed and added to Vector DB.")
-        except Exception as e:
-            print(f"[ERROR] Vision failed: {e}")
-            return
-
-    # --- THE CHAT LOOP (Transparency & Refusal Logic) ---
+    # --- STAGE 2: CHAT LOOP ---
     print("\n" + "=" * 40)
-    print("READY: Ask MenuBuddy about the menu (type 'exit' to quit)")
+    print("READY: Ask MenuBuddy about the stored menus")
     print("=" * 40)
+
+    template = [
+        ChatMessage.from_user(
+            """Answer based on the menu chunks. Use numbered citations like [1].
+            Context:
+            {% for doc in documents %}
+                Chunk [{{ loop.index }}] (Source: {{ doc.meta['source'] }}):
+                {{ doc.content }}
+                ---
+            {% endfor %}
+            Question: {{ query }}
+            Answer:"""
+        )
+    ]
 
     while True:
         query = input("\nUser Query: ").strip()
         if query.lower() in ["exit", "quit"]: break
 
-        # 2. RETRIEVAL (Deterministic: Searching the Vector DB)
-        print(f"\n[DETERMINISTIC STAGE: RETRIEVAL] Querying Vector DB for: '{query}'")
-        contexts = retrieve_menu_context(app, query)
+        print(f"[STAGE: RETRIEVAL] Searching ChromaDB...")
+        retrieval_res = retriever.run(query=query, top_k=5)
+        docs = retrieval_res["documents"]
 
-        # Engineering Transparency: Show exactly what was found
-        print("--- TOP RETRIEVED CHUNKS ---")
-        for c in contexts:
-            print(f"ID [{c['id']}] | Content: {c['text'][:80]}... | Source: {c['source']}")
+        if not docs:
+            print("No relevant menu data found in the database.")
+            continue
 
-        context_block = build_context_block(contexts)
+        print(f"[STAGE: GENERATION] Generating cited answer...")
+        res = pipe.run(data={
+            "prompt_builder": {
+                "template_variables": {"documents": docs, "query": query},
+                "template": template
+            }
+        })
 
-        # 3. GENERATION (Generative: Synthesizing the LLM Answer)
-        print("\n[GENERATIVE STAGE: LLM] Synthesizing answer with citations...")
-        answer = generate_grounded_answer(client, query, context_block)
+        print(f"\n--- ANSWER ---\n{res['genai']['replies'][0].text}")
 
-        # 4. VALIDATION (Deterministic: The Fact-Check Gatekeeper)
-        print("[DETERMINISTIC STAGE: VALIDATION] Verifying answer against source context...")
-        _, verdict = verify_answer_against_context(client, answer, context_block)
-
-        # 5. FINAL OUTPUT (Handling Refusal Cases)
-        if verdict == "UNSUPPORTED":
-            print(f"\n--- ANSWER (STATUS: REFUSED - {verdict}) ---")
-            print("Refusal Reason: I found some information, but it couldn't be verified against the menu data.")
-            print("Please try rephrasing or ask about a different item.")
-        else:
-            print(f"\n--- ANSWER (STATUS: VERIFIED - {verdict}) ---")
-            print(answer)
-
-        print("\n" + "-" * 30)
+        # Display the source key for the user
+        print("\nSources:")
+        for i, d in enumerate(docs):
+            print(f"[{i + 1}] {d.meta['source']}")
 
 
 if __name__ == "__main__":

@@ -1,8 +1,18 @@
-google-genai
-embedchain
-requests
-beautifulsoup4
-pillow
-python-dotenv
-chromadb
-openai
+# --- Core AI Framework ---
+haystack-ai>=2.0.0
+google-genai-haystack  # 2026 Gemini integration
+chroma-haystack        # 2026 ChromaDB integration
+
+# --- Document Processing & OCR ---
+docling                # The "brain" for menu parsing
+pyzbar                 # QR code decoding
+pillow                 # Image handling for QR/OCR
+
+# --- Web & API ---
+flask                  # Your Dashboard backend
+requests               # For URL-based menu fetching
+beautifulsoup4         # For cleaning web-scraped text
+python-dotenv          # Environment variable management
+
+# --- Database ---
+chromadb               # Persistent local vector storage
