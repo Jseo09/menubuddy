@@ -1,1 +1,10 @@
-/.env
+# Environments
+.env
+.venv
+env/
+venv/
+python_env/
+
+# Python cache
+__pycache__/
+*.py[cod]
