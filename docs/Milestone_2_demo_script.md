@@ -209,5 +209,4 @@ The system design remains correct. Any delay is due to external API load, not sy
 
 MenuBuddy uses a Retrieval-Augmented Generation pipeline to ensure answers are grounded in real menu data. It adds a validation layer to verify correctness and includes refusal mechanisms to prevent hallucination or unsafe responses.
 
-```
 
