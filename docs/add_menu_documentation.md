@@ -43,7 +43,7 @@ https://www.menuwithprice.com/menu/raising-canes/
 
 | Question | Response | Correct / Incorrect |
 | -------- | -------- | -------- |
-| What do the have in Raising Canes?  | Raising Cane's offers Tailgates, Combos, Chicken Finger, Coleslaw, Texas Toast, Cane's Sauce, Honey Mustard, Sandwich Only, 21oz. Cane's Sauce, 21oz. Honey Mustard, 32oz. Cane's Sauce, 32oz. Honey Mustard, Freshly Squeezed Lemonade, Fountain Drink, Tea, and Half Tea/Half Lemonade [1, 4]. The Caniac Combo includes 6 Chicken Fingers, Crinkle-Cut Fries, and two of something not specified [1]. Tailgate options include 25 Fingers for $41.99, 50 Fingers for $79.99, 75 Fingers for $118.99, and 100 Fingers for $142.99 [1]. | Correct  |
+| What do they have in Raising Canes?  | Raising Cane's offers Tailgates, Combos, Chicken Finger, Coleslaw, Texas Toast, Cane's Sauce, Honey Mustard, Sandwich Only, 21oz. Cane's Sauce, 21oz. Honey Mustard, 32oz. Cane's Sauce, 32oz. Honey Mustard, Freshly Squeezed Lemonade, Fountain Drink, Tea, and Half Tea/Half Lemonade [1, 4]. The Caniac Combo includes 6 Chicken Fingers, Crinkle-Cut Fries, and two of something not specified [1]. Tailgate options include 25 Fingers for $41.99, 50 Fingers for $79.99, 75 Fingers for $118.99, and 100 Fingers for $142.99 [1]. | Correct  |
 | Does Raising Cane's have a kids meal?  | Yes, Raising Cane's has a kids meal called "The Kid's Combo" for $6.69 | Correct |
 
 
