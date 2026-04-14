@@ -81,4 +81,6 @@ https://www.menuwithprice.com/menu/churchs-chicken/
 
 3. Had to be specific
 
-   a. If I didn't specify which restaurant I wanted information from, it would give me the contents of the previous restaurants.
+   a. If I didn't specify which restaurant I wanted information from, it would give me the contents of the previous restaurants
+
+   b. Closed app.py, reran it, tested with Canes menu, and it gave me an appropriate response. However, gave previous menus again for second question
