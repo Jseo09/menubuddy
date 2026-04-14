@@ -35,6 +35,5 @@
 | -------- | -------- |
 | Update README | ```` |
 | Update architecture diagram | Yes |
-| Sprint 2 retrospective doc | In progress |
+| Sprint 2 retrospective doc | Yes |
 
-## What is Done
