@@ -1,5 +1,9 @@
 # What has been completed
 
+**P0**
+
+-
+
 **P1**
 
 -
@@ -9,15 +13,15 @@
 -
 
 **P3**
-
--
-
-**P4**
 
 -
 
 # What needs to be completed
 
+**P0**
+
+-
+
 **P1**
 
 -
@@ -27,9 +31,5 @@
 -
 
 **P3**
-
--
-
-**P4**
 
 -
