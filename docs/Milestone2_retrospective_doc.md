@@ -1,5 +1,7 @@
 # What has been completed/ What is left
 
+## Sprint 2 Tasks
+
 **P0**
 
 | Task | Completed |
@@ -35,4 +37,4 @@
 | Update architecture diagram | Yes |
 | Sprint 2 retrospective doc | In progress |
 
-
+## What is Done
