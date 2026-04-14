@@ -1,4 +1,5 @@
 import os
+import re
 from dotenv import load_dotenv
 import google.genai as genai
 
@@ -14,12 +15,19 @@ from haystack_integrations.document_stores.chroma import ChromaDocumentStore
 from haystack_integrations.components.retrievers.chroma import ChromaQueryTextRetriever
 from haystack_integrations.components.generators.google_genai import GoogleGenAIChatGenerator
 
+def calculate_citation_coverage(text):
+    """Calculates the percentage of sentences that include a citation [n]."""
+    sentences = [s.strip() for s in re.split(r'(?<=[.!?]) +', text) if s.strip()]
+    if not sentences:
+        return 0.0
+    cited_count = sum(1 for s in sentences if re.search(r'\[\d+\]', s))
+    return round(cited_count / len(sentences), 2)
 
 def setup_pipeline():
     document_store = ChromaDocumentStore(persist_path="./chroma_db")
 
     retriever = ChromaQueryTextRetriever(document_store=document_store)
-    genai_chat = GoogleGenAIChatGenerator(model="gemini-3.1-flash-lite-preview")
+    genai_chat = GoogleGenAIChatGenerator(model="gemini-2.5-flash-lite")
     prompt_builder = ChatPromptBuilder()
 
     pipe = Pipeline()
@@ -92,6 +100,13 @@ Answer:"""
             print("No relevant menu data found in the database.")
             continue
 
+        # Check retrieval confidence
+        top_score = getattr(docs[0], "score", 0.0)
+        CONFIDENCE_THRESHOLD = 0.35
+
+        if top_score < CONFIDENCE_THRESHOLD:
+            print(f"[WARNING] Low retrieval confidence ({top_score:.2f}). Result might be unreliable.")
+
         print("[STAGE: GENERATION] Generating cited answer...")
         res = pipe.run(data={
             "prompt_builder": {
@@ -101,6 +116,9 @@ Answer:"""
         })
 
         answer = res["genai"]["replies"][0].text
+
+        # --- Calculate Metric ---
+        coverage = calculate_citation_coverage(answer)
 
         context_block = "\n".join(
             [f"[{i + 1}] {d.content} (SOURCE: {d.meta['source']})" for i, d in enumerate(docs)]

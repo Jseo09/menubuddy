@@ -2,6 +2,7 @@ import os
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 import google.genai as genai
+import re
 
 load_dotenv()
 
@@ -29,7 +30,7 @@ document_store = ChromaDocumentStore(persist_path="./chroma_db")
 cleaner = DocumentCleaner()
 splitter = DocumentSplitter(split_by="word", split_length=150, split_overlap=20)
 retriever = ChromaQueryTextRetriever(document_store=document_store)
-genai_chat = GoogleGenAIChatGenerator(model="gemini-3.1-flash-lite-preview")
+genai_chat = GoogleGenAIChatGenerator(model="gemini-2.5-flash-lite")
 prompt_builder = ChatPromptBuilder()
 
 # Generation pipeline
@@ -37,6 +38,21 @@ pipe = Pipeline()
 pipe.add_component("prompt_builder", prompt_builder)
 pipe.add_component("genai", genai_chat)
 pipe.connect("prompt_builder.prompt", "genai.messages")
+
+def calculate_citation_coverage(text):
+    """
+    Calculates the percentage of sentences that include a citation [n].
+    """
+    # Split text into sentences (handles . ! ? followed by a space)
+    sentences = [s.strip() for s in re.split(r'(?<=[.!?]) +', text) if s.strip()]
+    
+    if not sentences:
+        return 0.0
+    
+    # Count sentences containing at least one citation like [1], [2, 3], etc.
+    cited_count = sum(1 for s in sentences if re.search(r'\[\d+\]', s))
+    
+    return round(cited_count / len(sentences), 2)
 
 
 @app.route("/")
@@ -105,6 +121,8 @@ def ask_menu():
         source_mapping = [f"[{i + 1}] {d.meta['source']}" for i, d in enumerate(docs)]
         verification_log = "Sources Found:\n" + "\n".join(source_mapping)
 
+        
+
         return jsonify({
             "answer": "I'm sorry, I don't have enough reliable menu information to answer that from the stored menu data.",
             "status": "FLAGGED",
@@ -120,7 +138,7 @@ def ask_menu():
             """You are MenuBuddy. Answer the question using the numbered context chunks below.
 
 RULES:
-- Use numbered citations like [1] or [1, 2] at the end of sentences.
+- Every single sentence must end with a citation bracket. If a sentence summarizes multiple chunks, include all relevant numbers (e.g., [1, 2]).
 - Do NOT include file paths like 'uploads/Wendy's.png' in your descriptions.
 - If the information isn't in the chunks, say you don't know.
 - Do NOT invent ingredients, prices, or menu items.
@@ -166,13 +184,17 @@ Answer:"""
     source_mapping = [f"[{i + 1}] {d.meta['source']}" for i, d in enumerate(docs)]
     verification_log = "Sources Found:\n" + "\n".join(source_mapping)
 
+    # 8. Calculate citation coverage
+    coverage = calculate_citation_coverage(answer_text)
+
     return jsonify({
         "answer": answer_text,
         "status": status,
         "details": validation_text,
         "verification": verification_log,
         "sources": [d.meta["source"] for d in docs],
-        "top_score": top_score
+        "top_score": top_score,
+        "citation_coverage": coverage
     })
 
 if __name__ == "__main__":
