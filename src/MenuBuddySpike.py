@@ -4,12 +4,12 @@ import PIL.Image
 from bs4 import BeautifulSoup
 import google.genai as genai
 from embedchain import App
+from dotenv import load_dotenv
 
 # ---------------------------------------------------
 # API KEYS
 # ---------------------------------------------------
-os.environ["OPENAI_API_KEY"] = "KEY"
-os.environ["GOOGLE_API_KEY"] = "KEY"
+load_dotenv()
 
 # ---------------------------------------------------
 # HTML Extraction

@@ -3,136 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MenuBuddy AI</title>
+    <title>MenuBuddy AI v3.1</title>
     <style>
+        :root {
+            --bg-dark: #2b2b2b;
+            --panel-dark: #1e1e1e;
+            --accent-green: #4caf50;
+            --accent-orange: #ff9800;
+            --accent-red: #f44336;
+            --citation-blue: #2196f3;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #444444; /* Dark grey background */
-            color: #ffffff; /* White text */
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            margin: 0; padding: 20px;
+            display: flex; justify-content: center;
+            min-height: 100vh;
         }
-        .main-container {
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            gap: 20px;
-        }
-        .input-column {
-            flex: 2;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+        .main-container { width: 100%; max-width: 1000px; display: flex; gap: 20px; }
+        .input-column { flex: 2; display: flex; flex-direction: column; gap: 15px; }
+
         .log-column {
-            flex: 1;
-            background-color: #333333;
-            border-radius: 8px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #555555;
+            flex: 1; background-color: var(--panel-dark); border-radius: 8px;
+            padding: 15px; display: flex; flex-direction: column;
+            border: 1px solid #444; max-height: 90vh;
         }
-        h2 { font-size: 20px; font-weight: bold; margin: 0; padding-top: 10px; }
-        h3 { font-size: 16px; margin: 0; }
+
+        h2 { font-size: 18px; font-weight: bold; margin: 0; color: var(--accent-green); }
+        h3 { font-size: 14px; margin: 0; text-transform: uppercase; letter-spacing: 1px; color: #888; }
 
         input[type="text"] {
-            width: calc(100% - 20px);
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #cccccc;
-            background-color: #ffffff;
-            color: #333333;
+            width: calc(100% - 22px); padding: 12px;
+            border-radius: 4px; border: 1px solid #444;
+            background-color: #333; color: white;
         }
         button {
-            padding: 8px 16px;
-            border-radius: 4px;
-            border: 1px solid #cccccc;
-            background-color: #ffffff;
-            color: #333333;
-            cursor: pointer;
-            width: fit-content;
+            padding: 10px 20px; border-radius: 4px; border: none;
+            background-color: var(--accent-green); color: white;
+            cursor: pointer; font-weight: bold; transition: 0.2s;
         }
-        button:hover { background-color: #f0f0f0; }
+        button:hover { background-color: #45a049; transform: translateY(-1px); }
 
-        .file-input-wrapper {
-            border: 1px solid #999999;
-            background-color: #555555;
-            padding: 5px;
-            border-radius: 4px;
-            width: calc(100% - 10px);
-        }
-
+        /* Visual Status Indicators */
         .response-display {
-            width: calc(100% - 20px);
-            height: 100px;
-            background-color: #f8f8f8;
-            border: 1px solid #cccccc;
+            width: calc(100% - 24px); min-height: 120px;
+            background-color: #ffffff; border-radius: 6px;
+            padding: 15px; color: #1a1a1a; font-size: 15px;
+            line-height: 1.6; border-left: 8px solid #888;
+            transition: border-color 0.3s ease;
+        }
+        .response-display.verified { border-left-color: var(--accent-green); }
+        .response-display.flagged { border-left-color: var(--accent-orange); }
+        .response-display.refused {
+            border-left-color: var(--accent-red);
+            background-color: #fff0f0;
+            font-style: italic;
+        }
+
+        /* Citation Highlight Styling */
+        .citation-badge {
+            background-color: var(--citation-blue);
+            color: white;
+            padding: 2px 6px;
             border-radius: 4px;
-            padding: 10px;
-            color: #333333;
-            font-size: 14px;
-            overflow-y: auto;
+            font-size: 11px;
+            font-weight: bold;
+            margin: 0 2px;
+            display: inline-block;
         }
 
         #logWindow {
-            flex: 1;
-            font-family: monospace;
-            font-size: 12px;
-            color: #bbbbbb;
-            overflow-y: auto;
-            margin-top: 10px;
+            flex: 1; font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 11px; color: #aaa; overflow-y: auto;
+            margin-top: 10px; border-top: 1px solid #333; padding-top: 10px;
         }
+        .status-tag { font-weight: bold; font-size: 12px; margin-bottom: 5px; display: block; }
     </style>
 </head>
 <body>
 
 <div class="main-container">
-
     <div class="input-column">
+        <h2>Import Menu Source</h2>
+        <input id="urlInput" type="text" placeholder="https://wendys.com/menu">
+        <button onclick="importUrl()">Add URL</button>
 
-        <h2>Add Menu from URL</h2>
-        <input id="urlInput" type="text" placeholder="Enter Menu URL">
-        <button onclick="importUrl()">Add Menu</button>
-
-        <h2>Add Menu from Image</h2>
-        <div class="file-input-wrapper">
-            <input id="imageInput" type="file">
+        <div style="background: #333; padding: 10px; border-radius: 4px; border: 1px dashed #555;">
+            <input id="imageInput" type="file" style="font-size: 12px;">
         </div>
-        <button onclick="importImage()">Upload Image</button>
+        <button onclick="importImage()">Upload Image/QR</button>
 
-        <h2>Ask a Question</h2>
-        <input id="queryInput" type="text" placeholder="Type your question...">
-        <button onclick="askQuestion()">Ask</button>
+        <h2>Query Pipeline</h2>
+        <input id="queryInput" type="text" placeholder="Ask about items, prices, or ingredients...">
+        <button onclick="askQuestion()">Execute RAG Query</button>
 
-        <h3>Response:</h3>
-        <div id="responseDisplay" class="response-display">Your answers will appear here...</div>
-
+        <h3>MenuBuddy Output</h3>
+        <div id="responseDisplay" class="response-display">Waiting for user input...</div>
     </div>
 
     <div class="log-column">
-        <h3>Process Log</h3>
-        <div id="logWindow">System ready.</div>
+        <h3>Pipeline Trace</h3>
+        <div id="logWindow"></div>
     </div>
-
 </div>
 
 <script>
-    function addLog(msg) {
+    // Initialize System
+    window.onload = () => { addLog("SYSTEM READY: Pipeline active.", "#4caf50"); };
+
+    function addLog(msg, color = "#bbbbbb") {
         const log = document.getElementById('logWindow');
-        const timestamp = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' });
-        log.innerHTML += `<p style="margin:2px 0;">[${timestamp}] ${msg}</p>`;
+        const timestamp = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        log.innerHTML += `<div style="margin:5px 0; color: ${color}; border-left: 2px solid ${color}; padding-left: 5px;">[${timestamp}] ${msg}</div>`;
         log.scrollTop = log.scrollHeight;
     }
 
     async function importUrl() {
-        const urlInput = document.getElementById('urlInput');
-        const url = urlInput.value;
+        const url = document.getElementById('urlInput').value;
         if (!url) return;
-
-        addLog(`Importing from URL...`);
+        addLog(`INGESTION -> URL: ${url}`);
         try {
             const res = await fetch('/import_menu', {
                 method: 'POST',
@@ -140,52 +131,60 @@
                 body: JSON.stringify({ url })
             });
             const data = await res.json();
-            addLog(`SUCCESS: ${data.message}`);
-            urlInput.value = ''; // Clear input
-        } catch (error) { addLog(`ERROR: ${error}`); }
+            addLog(`SUCCESS: ${data.message}`, "#4caf50");
+        } catch (error) { addLog(`ERROR: ${error}`, "#f44336"); }
     }
 
     async function importImage() {
         const fileInput = document.getElementById('imageInput');
-        if (!fileInput.files[0]) return alert("Please choose a file first.");
-
+        if (!fileInput.files[0]) return;
         const formData = new FormData();
         formData.append('image', fileInput.files[0]);
-        addLog(`Processing Image with OCR...`);
-
+        addLog(`INGESTION -> Processing Local Buffer...`);
         try {
             const res = await fetch('/import_menu', { method: 'POST', body: formData });
             const data = await res.json();
-            addLog(`SUCCESS: Menu added to Vector DB`);
-            fileInput.value = ''; // Clear input
-        } catch (error) { addLog(`ERROR: ${error}`); }
+            addLog(`SUCCESS: Chunked into ${data.chunks_saved} vectors.`, "#4caf50");
+        } catch (error) { addLog(`ERROR: ${error}`, "#f44336"); }
     }
 
     async function askQuestion() {
-        const queryInput = document.getElementById('queryInput');
-        const question = queryInput.value;
-        if (!question) return;
+        const query = document.getElementById('queryInput').value;
+        const display = document.getElementById('responseDisplay');
+        if (!query) return;
 
-        const responseDisplay = document.getElementById('responseDisplay');
-        responseDisplay.textContent = 'Thinking...'; // Loading state
-
-        addLog(`RETRIEVAL -> Querying ChromaDB`);
-        addLog(`GENERATION -> Synthesizing Answer`);
+        display.innerHTML = '<em>Consulting Vector DB & Verifying...</em>';
+        display.className = "response-display"; // Reset classes
+        addLog(`QUERY -> "${query}"`);
 
         try {
             const res = await fetch('/ask_menu', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ question })
+                body: JSON.stringify({ question: query })
             });
             const data = await res.json();
-            addLog(`VALIDATION -> ${data.verification}`);
 
-            responseDisplay.textContent = data.answer; // Update response area
-            queryInput.value = ''; // Clear input
+            // Handle Determination/Refusal Logic
+            if (data.status === "FLAGGED" && (data.top_score < 0.35 || data.top_score === null)) {
+                display.classList.add('refused');
+                addLog(`REFUSAL -> Confidence too low (${data.top_score})`, "#f44336");
+            } else {
+                display.classList.add(data.status.toLowerCase());
+                addLog(`VALIDATION -> Status: ${data.status}`, data.status === "VERIFIED" ? "#4caf50" : "#ff9800");
+            }
+
+            // High-fidelity citation highlighting: [1] -> <span class="citation-badge">[1]</span>
+            const formattedAnswer = data.answer.replace(/\[(\d+)\]/g, '<span class="citation-badge">[$1]</span>');
+
+            const statusLabel = `<span class="status-tag" style="color: ${data.status === 'VERIFIED' ? 'green' : 'orange'}">${data.status}</span>`;
+            display.innerHTML = `${statusLabel}${formattedAnswer}<br><br><small style="color: #999;">Trace: ${data.details}</small>`;
+
+            addLog(data.verification.replace(/\n/g, '<br>'), "#666");
+
         } catch (error) {
-            addLog(`ERROR: ${error}`);
-            responseDisplay.textContent = 'An error occurred. Check logs.';
+            addLog(`PIPELINE CRASH: ${error}`, "#f44336");
+            display.textContent = 'Hardware/Pipeline error. Check terminal.';
         }
     }
 </script>
