@@ -65,3 +65,20 @@ https://www.menuwithprice.com/menu/churchs-chicken/
 | -------- | -------- | -------- |
 | What do they have in Church's Chicken  | Church's Chicken offers a 10PC Family Meal in Original or Spicy varieties, with options for Leg & Thigh or Tenders. They also have an Original Tender Wrap [1]. Additionally, you can find 8PC Tenders, and 12PC and 16PC Chicken options in Original or Spicy, with choices for Leg & Thigh, Mixed, or White Meat [5]. | Correct  |
 | Does Church's Chicken have a kids meal?  | I don't know. | Correct, Church's doesn't have a kids meal  |
+
+
+# Current Observations/ Results
+
+1. Had issues with first model (gemini-3.1-flash-lite-preview) so had to switch models (gemini-2.5-flash-lite)
+
+   a. Issues: gemini-3.1-flash-lite-preview gave me the error "503 UNAVAILABLE: This model is currently experiencing high demand" and wouldn't answer queries
+
+   b. When switched to a new model (gemini-2.5-flash), I got the same error but did answer only one question before crashing
+
+   c. Switched to the final model (gemini-2.5-flash-lite), still got the same error but was able to answer more questions without crashing
+
+2. Kept menu from previous restaurants
+
+3. Had to be specific
+
+   a. If I didn't specify which restaurant I wanted information from, it would give me the contents of the previous restaurants.
