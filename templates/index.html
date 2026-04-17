@@ -8,7 +8,6 @@
         :root {
             --bg-dark: #2b2b2b;
             --panel-dark: #1e1e1e;
-            --accent-green: #4caf50;
             --accent-orange: #ff9800;
             --accent-red: #f44336;
             --citation-blue: #2196f3;
@@ -31,7 +30,7 @@
             border: 1px solid #444; max-height: 90vh;
         }
 
-        h2 { font-size: 18px; font-weight: bold; margin: 0; color: var(--accent-green); }
+        h2 { font-size: 18px; font-weight: bold; margin: 0; color: #ffffff; }
         h3 { font-size: 14px; margin: 0; text-transform: uppercase; letter-spacing: 1px; color: #888; }
 
         input[type="text"] {
@@ -39,83 +38,65 @@
             border-radius: 4px; border: 1px solid #444;
             background-color: #333; color: white;
         }
+
         button {
-            padding: 10px 20px; border-radius: 4px; border: none;
-            background-color: var(--accent-green); color: white;
+            padding: 10px 20px; border-radius: 4px;
+            border: 1px solid #ffffff;
+            background-color: #ffffff; /* White background */
+            color: #000000;            /* Black text */
             cursor: pointer; font-weight: bold; transition: 0.2s;
         }
-        button:hover { background-color: #45a049; transform: translateY(-1px); }
+        button:hover { background-color: #e0e0e0; transform: translateY(-1px); }
 
-        /* Visual Status Indicators */
         .response-display {
             width: calc(100% - 24px); min-height: 120px;
             background-color: #ffffff; border-radius: 6px;
             padding: 15px; color: #1a1a1a; font-size: 15px;
             line-height: 1.6; border-left: 8px solid #888;
-            transition: border-color 0.3s ease;
         }
-        .response-display.verified { border-left-color: var(--accent-green); }
+        .response-display.verified { border-left-color: #4caf50; }
         .response-display.flagged { border-left-color: var(--accent-orange); }
-        .response-display.refused {
-            border-left-color: var(--accent-red);
-            background-color: #fff0f0;
-            font-style: italic;
-        }
+        .response-display.refused { border-left-color: var(--accent-red); background-color: #fff0f0; }
 
-        /* Citation Highlight Styling */
         .citation-badge {
-            background-color: var(--citation-blue);
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            margin: 0 2px;
-            display: inline-block;
+            background-color: var(--citation-blue); color: white;
+            padding: 2px 6px; border-radius: 4px; font-size: 11px;
+            font-weight: bold; margin: 0 2px; display: inline-block;
         }
 
         #logWindow {
-            flex: 1; font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 11px; color: #aaa; overflow-y: auto;
-            margin-top: 10px; border-top: 1px solid #333; padding-top: 10px;
+            flex: 1; font-family: 'Consolas', monospace; font-size: 11px;
+            color: #aaa; overflow-y: auto; margin-top: 10px;
+            border-top: 1px solid #333; padding-top: 10px;
         }
         .status-tag { font-weight: bold; font-size: 12px; margin-bottom: 5px; display: block; }
     </style>
 </head>
 <body>
-
 <div class="main-container">
     <div class="input-column">
         <h2>Import Menu Source</h2>
-        <input id="urlInput" type="text" placeholder="https://wendys.com/menu">
+        <input id="urlInput" type="text" placeholder="https://menu-link.com">
         <button onclick="importUrl()">Add URL</button>
-
         <div style="background: #333; padding: 10px; border-radius: 4px; border: 1px dashed #555;">
-            <input id="imageInput" type="file" style="font-size: 12px;">
+            <input id="imageInput" type="file">
         </div>
         <button onclick="importImage()">Upload Image/QR</button>
-
         <h2>Query Pipeline</h2>
-        <input id="queryInput" type="text" placeholder="Ask about items, prices, or ingredients...">
+        <input id="queryInput" type="text" placeholder="Ask about items or prices...">
         <button onclick="askQuestion()">Execute RAG Query</button>
-
         <h3>MenuBuddy Output</h3>
         <div id="responseDisplay" class="response-display">Waiting for user input...</div>
     </div>
-
     <div class="log-column">
         <h3>Pipeline Trace</h3>
         <div id="logWindow"></div>
     </div>
 </div>
-
 <script>
-    // Initialize System
-    window.onload = () => { addLog("SYSTEM READY: Pipeline active.", "#4caf50"); };
-
     function addLog(msg, color = "#bbbbbb") {
         const log = document.getElementById('logWindow');
-        const timestamp = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const timestamp = new Date().toLocaleTimeString([], { hour12: false });
         log.innerHTML += `<div style="margin:5px 0; color: ${color}; border-left: 2px solid ${color}; padding-left: 5px;">[${timestamp}] ${msg}</div>`;
         log.scrollTop = log.scrollHeight;
     }
@@ -124,15 +105,9 @@
         const url = document.getElementById('urlInput').value;
         if (!url) return;
         addLog(`INGESTION -> URL: ${url}`);
-        try {
-            const res = await fetch('/import_menu', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ url })
-            });
-            const data = await res.json();
-            addLog(`SUCCESS: ${data.message}`, "#4caf50");
-        } catch (error) { addLog(`ERROR: ${error}`, "#f44336"); }
+        const res = await fetch('/import_menu', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ url }) });
+        const data = await res.json();
+        addLog(`SUCCESS: ${data.message}`, "#4caf50");
     }
 
     async function importImage() {
@@ -140,63 +115,28 @@
         if (!fileInput.files[0]) return;
         const formData = new FormData();
         formData.append('image', fileInput.files[0]);
-        addLog(`INGESTION -> Processing Local Buffer...`);
-        try {
-            const res = await fetch('/import_menu', { method: 'POST', body: formData });
-            const data = await res.json();
-            addLog(`SUCCESS: Chunked into ${data.chunks_saved} vectors.`, "#4caf50");
-        } catch (error) { addLog(`ERROR: ${error}`, "#f44336"); }
+        addLog(`INGESTION -> Image Buffer...`);
+        const res = await fetch('/import_menu', { method: 'POST', body: formData });
+        const data = await res.json();
+        addLog(`SUCCESS: ${data.message}`, "#4caf50");
     }
 
     async function askQuestion() {
         const query = document.getElementById('queryInput').value;
         const display = document.getElementById('responseDisplay');
         if (!query) return;
+        display.innerHTML = '<em>Thinking...</em>';
+        display.className = "response-display";
+        const res = await fetch('/ask_menu', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ question: query }) });
+        const data = await res.json();
 
-        display.innerHTML = '<em>Consulting Vector DB & Verifying...</em>';
-        display.className = "response-display"; // Reset classes
-        addLog(`QUERY -> "${query}"`);
+        if (data.status === "VERIFIED") display.classList.add('verified');
+        else if (data.status.includes("FLAGGED")) display.classList.add('flagged');
 
-        try {
-            const res = await fetch('/ask_menu', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ question: query })
-            });
-            const data = await res.json();
-
-            // Handle Determination/Refusal Logic
-            if (data.status === "FLAGGED" && (data.top_score < 0.35 || data.top_score === null)) {
-                display.classList.add('refused');
-                addLog(`REFUSAL -> Confidence too low (${data.top_score})`, "#f44336");
-            }
-            else if (data.status === "FLAGGED (IRRELEVANT)") {
-                display.classList.add('flagged');  // or create flagged-irrelevant class if you want
-                addLog(`IRRELEVANT -> Out of scope question`, "#ff9800");
-            }
-            else if (data.status === "VERIFIED") {
-                display.classList.add('verified');
-                addLog(`VALIDATION -> VERIFIED`, "#4caf50");
-            }
-            else {
-                display.classList.add('flagged');
-                addLog(`VALIDATION -> FLAGGED`, "#ff9800");
-            }
-
-            // High-fidelity citation highlighting: [1] -> <span class="citation-badge">[1]</span>
-            const formattedAnswer = data.answer.replace(/\[(\d+)\]/g, '<span class="citation-badge">[$1]</span>');
-
-            const statusLabel = `<span class="status-tag" style="color: ${data.status === 'VERIFIED' ? 'green' : 'orange'}">${data.status}</span>`;
-            display.innerHTML = `${statusLabel}${formattedAnswer}<br><br><small style="color: #999;">Trace: ${data.details}</small>`;
-
-            addLog(data.verification.replace(/\n/g, '<br>'), "#666");
-
-        } catch (error) {
-            addLog(`PIPELINE CRASH: ${error}`, "#f44336");
-            display.textContent = 'Hardware/Pipeline error. Check terminal.';
-        }
+        const formattedAnswer = data.answer.replace(/\[(\d+)\]/g, '<span class="citation-badge">[$1]</span>');
+        display.innerHTML = `<span class="status-tag">${data.status}</span>${formattedAnswer}<br><br><small style="color:#999;">${data.details}</small>`;
+        addLog(data.verification.replace(/\n/g, '<br>'), "#666");
     }
 </script>
-
 </body>
 </html>

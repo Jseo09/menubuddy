@@ -1,5 +1,6 @@
 import os
 import re
+import time
 from dotenv import load_dotenv
 import google.genai as genai
 
@@ -16,6 +17,20 @@ from haystack_integrations.document_stores.chroma import ChromaDocumentStore
 from haystack_integrations.components.retrievers.chroma import ChromaQueryTextRetriever
 from haystack_integrations.components.generators.google_genai import GoogleGenAIChatGenerator
 
+
+def safe_run(func, *args, **kwargs):
+    """
+    Attempts to run a Haystack component.
+    On failure, waits 2 seconds and retries once.
+    """
+    try:
+        return func(*args, **kwargs)
+    except Exception as e:
+        print(f"  [!] Primary attempt failed: {e}. Retrying in 2 seconds...")
+        time.sleep(2)
+        return func(*args, **kwargs)
+
+
 def calculate_citation_coverage(text):
     """Calculates the percentage of sentences that include a citation [n]."""
     sentences = [s.strip() for s in re.split(r'(?<=[.!?]) +', text) if s.strip()]
@@ -24,9 +39,9 @@ def calculate_citation_coverage(text):
     cited_count = sum(1 for s in sentences if re.search(r'\[\d+\]', s))
     return round(cited_count / len(sentences), 2)
 
+
 def setup_pipeline():
     document_store = ChromaDocumentStore(persist_path="./chroma_db")
-
     retriever = ChromaQueryTextRetriever(document_store=document_store)
     genai_chat = GoogleGenAIChatGenerator(model="gemini-2.5-flash-lite")
     prompt_builder = ChatPromptBuilder()
@@ -41,9 +56,7 @@ def setup_pipeline():
 
 def main():
     load_dotenv()
-
     validator_client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
-
     doc_store, retriever, pipe = setup_pipeline()
     cleaner = DocumentCleaner()
     splitter = DocumentSplitter(split_by="word", split_length=150, split_overlap=20)
@@ -54,14 +67,12 @@ def main():
     if choice in ["1", "2"]:
         source = input("Enter URL or Image Path: ").strip()
         print(f"\n[STAGE: INGESTION] Processing {source} with Docling...")
-
         raw_markdown = extract_menu_data(source)
 
         if raw_markdown:
             doc = Document(content=raw_markdown, meta={"source": source})
             cleaned = cleaner.run(documents=[doc])
             chunks = splitter.run(documents=cleaned["documents"])
-
             doc_store.write_documents(chunks["documents"])
             print(f"[OK] {len(chunks['documents'])} chunks saved to local ChromaDB.")
         else:
@@ -92,88 +103,81 @@ Answer:"""
         query = input("\nUser Query: ").strip()
         if query.lower() in ["exit", "quit"]:
             break
+
         if is_irrelevant_question(query):
             print("\n--- MENU BUDDY ANSWER ---")
-            print("I'm sorry, that question is outside the menu domain. I can only answer questions about menu items, prices, and menu-related details.")
-
+            print(
+                "I'm sorry, that question is outside the menu domain. I can only answer questions about menu items, prices, and menu-related details.")
             print("\n--- VALIDATION STATUS ---")
             print("Status: FLAGGED (IRRELEVANT)")
-
             print("\n--- VALIDATION DETAILS ---")
             print("Prefilter refusal: question classified as out of scope before retrieval.")
             continue
-        
 
         print("[STAGE: RETRIEVAL] Searching ChromaDB...")
-        retrieval_res = retriever.run(query=query, top_k=5)
-        docs = retrieval_res["documents"]
+        try:
+            # Wrapped retrieval with safe_run
+            retrieval_res = safe_run(retriever.run, query=query, top_k=5)
+            docs = retrieval_res["documents"]
+        except Exception as e:
+            print("\n--- ERROR ---")
+            print("I'm having trouble accessing my menu database right now.")
+            print(f"Status: FLAGGED\nDetails: {e}")
+            continue
 
         if not docs:
             print("No relevant menu data found in the database.")
             continue
 
-        # Check retrieval confidence
         top_score = getattr(docs[0], "score", None)
-
         if top_score is None or top_score < CONFIDENCE_THRESHOLD:
             print("\n--- MENU BUDDY ANSWER ---")
-            print("I'm sorry, I don't have enough reliable menu information to answer that from the stored menu data.")
-
-            print("\n--- VALIDATION STATUS ---")
-            print("Status: FLAGGED")
-
-            print("\n--- VALIDATION DETAILS ---")
+            print("I'm sorry, I don't have enough reliable menu information to answer that.")
+            print("\n--- VALIDATION STATUS ---\nStatus: FLAGGED")
             print(
-                f"Deterministic refusal: top retrieval score {top_score} "
-                f"is below threshold {CONFIDENCE_THRESHOLD}."
-            )
-
-            print("\nSources:")
-            for i, d in enumerate(docs):
-                print(f"[{i + 1}] {d.meta['source']}")
+                f"\n--- VALIDATION DETAILS ---\nTop retrieval score {top_score} below threshold {CONFIDENCE_THRESHOLD}.")
             continue
 
         print("[STAGE: GENERATION] Generating cited answer...")
-        res = pipe.run(data={
-            "prompt_builder": {
-                "template_variables": {"documents": docs, "query": query},
-                "template": template
-            }
-        })
-
-
-        answer = res["genai"]["replies"][0].text
+        try:
+            # Wrapped generation with safe_run
+            res = safe_run(pipe.run, data={
+                "prompt_builder": {
+                    "template_variables": {"documents": docs, "query": query},
+                    "template": template
+                }
+            })
+            answer = res["genai"]["replies"][0].text
+        except Exception as e:
+            print("\n--- MENU BUDDY ANSWER ---")
+            print("I'm currently having trouble generating an answer due to a service error. Please try again.")
+            print("\n--- VALIDATION STATUS ---\nStatus: FLAGGED (CONNECTION ERROR)")
+            print(f"Details: {e}")
+            continue
 
         # --- Calculate Metric ---
         coverage = calculate_citation_coverage(answer)
-
         context_block = "\n".join(
             [f"[{i + 1}] {d.content} (SOURCE: {d.meta['source']})" for i, d in enumerate(docs)]
         )
 
         validation_text, verdict = verify_answer_against_context(
-        validator_client,
-        query,
-        answer,
-        context_block
-    )
+            validator_client,
+            query,
+            answer,
+            context_block
+        )
 
-        if verdict == "OK":
-            status = "VERIFIED"
-        elif verdict == "IRRELEVANT":
+        status = "VERIFIED" if verdict == "OK" else "FLAGGED"
+        if verdict == "IRRELEVANT":
             status = "FLAGGED (IRRELEVANT)"
-        else:
-            status = "FLAGGED"
 
         print("\n--- MENU BUDDY ANSWER ---")
         print(answer)
-
         print("\n--- VALIDATION STATUS ---")
         print(f"Status: {status}")
-
         print("\n--- VALIDATION DETAILS ---")
         print(validation_text)
-
         print("\nSources:")
         for i, d in enumerate(docs):
             print(f"[{i + 1}] {d.meta['source']}")
