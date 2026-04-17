@@ -1,30 +1,49 @@
-def verify_answer_against_context(gem_client, answer, context_block):
-    # Standardizing the prompt for the new 3.1-flash logic
+import re
+
+def verify_answer_against_context(gem_client, question, answer, context_block):
     prompt = f"""
-    You are a strict Fact-Checker. 
-    Verify if the 'Answer' below is fully supported by the provided 'Context'.
+You are a strict validator.
 
-    Rules:
-    - If the Answer only contains information found in the Context, respond with 'VERDICT: OK'.
-    - If the Answer contains information NOT in the Context, respond with 'VERDICT: UNSUPPORTED'.
+Decide if the answer is:
+- OK: answer is supported by the context OR correctly refuses due to missing info
+- UNSUPPORTED: answer includes information NOT present in context
+- IRRELEVANT: the user's question is outside the menu/food domain
 
-    Context: {context_block}
-    Answer: {answer}
-    """
+Rules:
+- If the answer says "I don't know" or "not provided in menu", that is OK only if the question is menu-related.
+- If the question is about CEO, company info, corporate history, stock price, founder, headquarters, etc., mark IRRELEVANT.
+- If the answer invents food, price, or ingredients, mark UNSUPPORTED.
+
+Question:
+{question}
+
+Answer:
+{answer}
+
+Context:
+{context_block}
+
+Respond exactly in this format:
+VERDICT: OK / UNSUPPORTED / IRRELEVANT
+REASON: short explanation
+"""
 
     try:
-        # UPDATED: Using 'gemini-3.1-flash' and removing 'models/' prefix
         resp = gem_client.models.generate_content(
-            model="gemini-3.1-flash-lite-preview",
-            contents=[prompt]
+            model="gemini-2.5-flash-lite",
+            contents=prompt
         )
 
-        raw_text = resp.text.upper() if resp.text else ""
-        verdict = "OK" if "VERDICT: OK" in raw_text else "UNSUPPORTED"
+        text = resp.text or ""
 
-        return resp.text, verdict
+        if re.search(r"\bIRRELEVANT\b", text, re.I):
+            verdict = "IRRELEVANT"
+        elif re.search(r"\bUNSUPPORTED\b", text, re.I):
+            verdict = "UNSUPPORTED"
+        else:
+            verdict = "OK"
+
+        return text, verdict
 
     except Exception as e:
-        print(f"Validation Error: {e}")
-        # Default to UNSUPPORTED on error for safety
-        return str(e), "UNSUPPORTED"
+        return f"VALIDATION ERROR: {str(e)}", "UNSUPPORTED"
