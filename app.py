@@ -5,7 +5,8 @@ import google.genai as genai
 import re
 
 load_dotenv()
-
+from src.config import CONFIDENCE_THRESHOLD
+from src.question_filter import is_irrelevant_question
 from src.scraper import extract_menu_data
 from src.validator import verify_answer_against_context
 
@@ -97,8 +98,15 @@ def ask_menu():
     if not query:
         return jsonify({"error": "No question provided."}), 400
 
-    # Deterministic refusal threshold
-    CONFIDENCE_THRESHOLD = 0.35
+    if is_irrelevant_question(query):
+        return jsonify({
+            "answer": "I'm sorry, that question is outside the menu domain. I can only answer questions about menu items, prices, and menu-related details.",
+            "status": "FLAGGED (IRRELEVANT)",
+            "details": "Prefilter refusal: question classified as out of scope before retrieval.",
+            "verification": "Sources Found:\nNone",
+            "sources": [],
+            "top_score": None
+        })
 
     # 1. Retrieve top chunks
     retrieval_res = retriever.run(query=query, top_k=5)
@@ -117,7 +125,7 @@ def ask_menu():
     # 2. Check top retrieval score before generation
     top_score = getattr(docs[0], "score", None)
     
-    if top_score is not None and top_score < CONFIDENCE_THRESHOLD:
+    if top_score is None or top_score < CONFIDENCE_THRESHOLD:
         source_mapping = [f"[{i + 1}] {d.meta['source']}" for i, d in enumerate(docs)]
         verification_log = "Sources Found:\n" + "\n".join(source_mapping)
 
@@ -173,10 +181,11 @@ Answer:"""
 
     # 6. Validate answer
     validation_text, verdict = verify_answer_against_context(
-        validator_client,
-        answer_text,
-        context_block
-    )
+    validator_client,
+    query,
+    answer_text,
+    context_block
+)
 
     status = "VERIFIED" if verdict == "OK" else "FLAGGED"
 
