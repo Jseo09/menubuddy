@@ -5,8 +5,9 @@ import google.genai as genai
 
 from src.validator import verify_answer_against_context
 from src.scraper import extract_menu_data
-
+from src.config import CONFIDENCE_THRESHOLD
 from haystack import Pipeline, Document
+from src.question_filter import is_irrelevant_question
 from haystack.components.preprocessors import DocumentCleaner, DocumentSplitter
 from haystack.components.builders import ChatPromptBuilder
 from haystack.dataclasses import ChatMessage
@@ -91,6 +92,17 @@ Answer:"""
         query = input("\nUser Query: ").strip()
         if query.lower() in ["exit", "quit"]:
             break
+        if is_irrelevant_question(query):
+            print("\n--- MENU BUDDY ANSWER ---")
+            print("I'm sorry, that question is outside the menu domain. I can only answer questions about menu items, prices, and menu-related details.")
+
+            print("\n--- VALIDATION STATUS ---")
+            print("Status: FLAGGED (IRRELEVANT)")
+
+            print("\n--- VALIDATION DETAILS ---")
+            print("Prefilter refusal: question classified as out of scope before retrieval.")
+            continue
+        
 
         print("[STAGE: RETRIEVAL] Searching ChromaDB...")
         retrieval_res = retriever.run(query=query, top_k=5)
@@ -101,11 +113,25 @@ Answer:"""
             continue
 
         # Check retrieval confidence
-        top_score = getattr(docs[0], "score", 0.0)
-        CONFIDENCE_THRESHOLD = 0.35
+        top_score = getattr(docs[0], "score", None)
 
-        if top_score < CONFIDENCE_THRESHOLD:
-            print(f"[WARNING] Low retrieval confidence ({top_score:.2f}). Result might be unreliable.")
+        if top_score is None or top_score < CONFIDENCE_THRESHOLD:
+            print("\n--- MENU BUDDY ANSWER ---")
+            print("I'm sorry, I don't have enough reliable menu information to answer that from the stored menu data.")
+
+            print("\n--- VALIDATION STATUS ---")
+            print("Status: FLAGGED")
+
+            print("\n--- VALIDATION DETAILS ---")
+            print(
+                f"Deterministic refusal: top retrieval score {top_score} "
+                f"is below threshold {CONFIDENCE_THRESHOLD}."
+            )
+
+            print("\nSources:")
+            for i, d in enumerate(docs):
+                print(f"[{i + 1}] {d.meta['source']}")
+            continue
 
         print("[STAGE: GENERATION] Generating cited answer...")
         res = pipe.run(data={
@@ -114,6 +140,7 @@ Answer:"""
                 "template": template
             }
         })
+
 
         answer = res["genai"]["replies"][0].text
 
@@ -125,12 +152,18 @@ Answer:"""
         )
 
         validation_text, verdict = verify_answer_against_context(
-            validator_client,
-            answer,
-            context_block
-        )
+        validator_client,
+        query,
+        answer,
+        context_block
+    )
 
-        status = "VERIFIED" if verdict == "OK" else "FLAGGED"
+        if verdict == "OK":
+            status = "VERIFIED"
+        elif verdict == "IRRELEVANT":
+            status = "FLAGGED (IRRELEVANT)"
+        else:
+            status = "FLAGGED"
 
         print("\n--- MENU BUDDY ANSWER ---")
         print(answer)
