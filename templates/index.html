@@ -169,9 +169,18 @@
             if (data.status === "FLAGGED" && (data.top_score < 0.35 || data.top_score === null)) {
                 display.classList.add('refused');
                 addLog(`REFUSAL -> Confidence too low (${data.top_score})`, "#f44336");
-            } else {
-                display.classList.add(data.status.toLowerCase());
-                addLog(`VALIDATION -> Status: ${data.status}`, data.status === "VERIFIED" ? "#4caf50" : "#ff9800");
+            }
+            else if (data.status === "FLAGGED (IRRELEVANT)") {
+                display.classList.add('flagged');  // or create flagged-irrelevant class if you want
+                addLog(`IRRELEVANT -> Out of scope question`, "#ff9800");
+            }
+            else if (data.status === "VERIFIED") {
+                display.classList.add('verified');
+                addLog(`VALIDATION -> VERIFIED`, "#4caf50");
+            }
+            else {
+                display.classList.add('flagged');
+                addLog(`VALIDATION -> FLAGGED`, "#ff9800");
             }
 
             // High-fidelity citation highlighting: [1] -> <span class="citation-badge">[1]</span>
