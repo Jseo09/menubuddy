@@ -2,7 +2,7 @@
 
 ---
 
-MenuBuddy is a specialized Retrieval-Augmented Generation (RAG) system that converts restaurant menus (via URL scraping or QR Code) into an interactive assistant. It utilizes a Haystack-based pipeline and the Google Gemini 2 Flash model to ensure accuracy and prevent price hallucinations.
+MenuBuddy is a specialized Retrieval-Augmented Generation (RAG) system that converts restaurant menus (via URL scraping or QR Code) into an interactive assistant. It utilizes a Haystack-based pipeline and the Google Gemini 2 Flash model to ensure accuracy and prevent hallucinations.
 
 ---
 
