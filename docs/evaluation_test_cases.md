@@ -38,13 +38,13 @@ Queries 15-20 using menu link: https://www.menuwithprice.com/menu/olive-garden/
 ## 2. Final Performance Metrics
 *Calculated based on the results from the matrix above.*
 
-| Metric | Target | Actual Result | Status |
-| :--- | :--- | :--- |:------|
-| **Retrieval Accuracy** | ≥ 85% | 95% (19/20) | Pass |
-| **Grounding Accuracy** | 100% | 100% | Pass |
-| **Hallucination Rate** | 0% | 5% | Minor issue |
-| **Refusal Accuracy** | 100% | 100% | Pass |
-| **Citation Coverage** | >=95% | 97.5% | Pass |
+| Metric | Target | Old Results | Gemini-2.5 Results | Old Status | New Status |
+| :--- | :--- | :--- | :--- |:------| :----- |
+| **Retrieval Accuracy** | ≥ 85% | 95% (19/20) | 100% | Pass | Pass |
+| **Grounding Accuracy** | 100% | 100% | 100% | Pass | Pass |
+| **Hallucination Rate** | 0% | 5% | 0% | Minor issue | Pass |
+| **Refusal Accuracy** | 100% | 100% | 100% | Pass | Pass |
+| **Citation Coverage** | >=95% | N/A | 97.5% | Pass | Pass |
 
 ---
 
