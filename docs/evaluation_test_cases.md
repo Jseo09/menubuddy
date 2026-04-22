@@ -44,6 +44,7 @@ Queries 15-20 using menu link: https://www.menuwithprice.com/menu/olive-garden/
 | **Grounding Accuracy** | 100% | 100% | Pass |
 | **Hallucination Rate** | 0% | 5% | Minor issue |
 | **Refusal Accuracy** | 100% | 100% | Pass |
+| **Citation Coverage** | >=95% | 98% | Pass |
 
 ---
 
