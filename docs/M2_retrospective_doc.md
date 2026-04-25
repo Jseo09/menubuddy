@@ -26,7 +26,7 @@
 | -------- | -------- |
 | Improve Flask UI | Yes |
 | Add more menu sources | Yes |
-| Error handling improvements | ```` |
+| Error handling improvements | Yes |
 | Demo rehearsel script | Yes |
 
 **P3**
