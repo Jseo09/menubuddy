@@ -33,7 +33,7 @@
 
 | Task | Completed |
 | -------- | -------- |
-| Update README | ```` |
+| Update README | Yes |
 | Update architecture diagram | Yes |
 | Sprint 2 retrospective doc | Yes |
 
