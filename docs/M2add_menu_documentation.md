@@ -84,3 +84,31 @@ https://www.menuwithprice.com/menu/churchs-chicken/
    a. If I didn't specify which restaurant I wanted information from, it would give me the contents of the previous restaurants
 
    b. Closed app.py, reran it, tested with Canes menu, and it gave me an appropriate response. However, gave previous menus again for second question
+
+## Sprint 3
+
+Add a short note in the prompt template telling the model to scope answers to the restaurant implied by the question when possible. Used Canes menu to ask questions, had other menus on DB.
+
+1. First added note:
+
+   a. "IMPORTANT:
+   - Scope your answer to a single restaurant when possible.
+   - Use the restaurant implied by the question.
+   - If multiple restaurants appear in context, prefer chunks that match the same restaurant and ignore others unless explicitly asked to compare."
+  
+   b. Reply: 
+      The Dragon Calamari is tossed in a sweet, mildly spicy chili sauce. [1]
+
+ 2. Second added note:
+
+    a. "IMPORTANT:
+    - Use information from ONLY ONE restaurant.
+    - Ignore any content from other restaurants.
+    - Do NOT mix menu items from different sources."
+   
+    b. Replies:
+        ("Raising Cane’s offers its signature Cane’s Sauce as its primary dipping sauce. [1] Some menus may also include ketchup upon request. [2]"). ("I’m not sure which restaurant this refers to.").
+
+    c. Observations: Model rarely confuses restaurants now but still makes mistakes, might need to make a change in the code and not prompt.
+   
+      

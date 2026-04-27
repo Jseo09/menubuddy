@@ -134,7 +134,12 @@ def ask_menu():
             "sources": [clean_source_label(d.meta["source"]) for d in docs]
         })
 
-    template = [ChatMessage.from_user("""Answer using the context. Cite every sentence with [n]. Context: {% for doc in documents %}Chunk [{{ loop.index }}]: (Source: {{ doc.meta['source'] }}) {{ doc.content }} --- {% endfor %} Question: {{ query }} Answer:""")]
+    template = [ChatMessage.from_user("""Answer using the context. 
+    IMPORTANT:
+        - Use information from ONLY ONE restaurant.
+        - Ignore any content from other restaurants.
+        - Do NOT mix menu items from different sources.
+    Cite every sentence with [n]. Context: {% for doc in documents %}Chunk [{{ loop.index }}]: (Source: {{ doc.meta['source'] }}) {{ doc.content }} --- {% endfor %} Question: {{ query }} Answer:""")]
 
     try:
         res = safe_run(pipe.run, data={"prompt_builder": {"template_variables": {"documents": docs, "query": query}, "template": template}})

@@ -85,7 +85,13 @@ def main():
 
     template = [
         ChatMessage.from_user(
-            """Answer based on the menu chunks. Use numbered citations like [1].
+            """Answer based on the menu chunks.
+            IMPORTANT:
+            - Use information from ONLY ONE restaurant.
+            - Ignore any content from other restaurants.
+            - Do NOT mix menu items from different sources.
+            
+            Use numbered citations like [1].
 
 Context:
 {% for doc in documents %}

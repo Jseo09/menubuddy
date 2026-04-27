@@ -119,7 +119,7 @@ Does the Baconator contain peanuts?
 * Returns safe fallback response:
 
 ```
-The menu does not provide enough information. Please confirm with restaurant staff.
+I don't have enough reliable information.
 ```
 
 * Validation confirms the response is safe
@@ -140,9 +140,9 @@ Who is the CEO of Wendy’s?
 
 #### Expected Outcome
 
-* Question identified as outside menu scope
-* System refuses to answer
-* Status = FLAGGED (IRRELEVANT)
+* Query fails relevance/retrieval stage
+* System does not generate an answer from menu data
+* Returns refusal response due to lack of menu grounding
 
 #### What to Say
 
