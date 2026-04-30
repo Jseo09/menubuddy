@@ -42,8 +42,8 @@
         button {
             padding: 10px 20px; border-radius: 4px;
             border: 1px solid #ffffff;
-            background-color: #ffffff; /* White background */
-            color: #000000;            /* Black text */
+            background-color: #ffffff;
+            color: #000000;
             cursor: pointer; font-weight: bold; transition: 0.2s;
         }
         button:hover { background-color: #e0e0e0; transform: translateY(-1px); }
@@ -62,6 +62,17 @@
             background-color: var(--citation-blue); color: white;
             padding: 2px 6px; border-radius: 4px; font-size: 11px;
             font-weight: bold; margin: 0 2px; display: inline-block;
+        }
+
+        .source-pill {
+            display: inline-block;
+            background: #eee;
+            color: #555;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-right: 5px;
+            margin-top: 10px;
         }
 
         #logWindow {
@@ -107,7 +118,8 @@
         addLog(`INGESTION -> URL: ${url}`);
         const res = await fetch('/import_menu', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ url }) });
         const data = await res.json();
-        addLog(`SUCCESS: ${data.message}`, "#4caf50");
+        if (res.ok) addLog(`SUCCESS: ${data.message}`, "#4caf50");
+        else addLog(`ERROR: ${data.error}`, "#f44336");
     }
 
     async function importImage() {
@@ -118,7 +130,8 @@
         addLog(`INGESTION -> Image Buffer...`);
         const res = await fetch('/import_menu', { method: 'POST', body: formData });
         const data = await res.json();
-        addLog(`SUCCESS: ${data.message}`, "#4caf50");
+        if (res.ok) addLog(`SUCCESS: ${data.message}`, "#4caf50");
+        else addLog(`ERROR: ${data.error}`, "#f44336");
     }
 
     async function askQuestion() {
@@ -127,15 +140,35 @@
         if (!query) return;
         display.innerHTML = '<em>Thinking...</em>';
         display.className = "response-display";
-        const res = await fetch('/ask_menu', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ question: query }) });
-        const data = await res.json();
 
-        if (data.status === "VERIFIED") display.classList.add('verified');
-        else if (data.status.includes("FLAGGED")) display.classList.add('flagged');
+        try {
+            const res = await fetch('/ask_menu', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ question: query })
+            });
+            const data = await res.json();
 
-        const formattedAnswer = data.answer.replace(/\[(\d+)\]/g, '<span class="citation-badge">[$1]</span>');
-        display.innerHTML = `<span class="status-tag">${data.status}</span>${formattedAnswer}<br><br><small style="color:#999;">${data.details}</small>`;
-        addLog(data.verification.replace(/\n/g, '<br>'), "#666");
+            if (data.status === "VERIFIED") display.classList.add('verified');
+            else if (data.status.includes("FLAGGED")) display.classList.add('flagged');
+
+            // Format citations and source pills
+            const formattedAnswer = data.answer.replace(/\[(\d+)\]/g, '<span class="citation-badge">[$1]</span>');
+            const sourcePills = (data.sources || []).map(s => `<span class="source-pill">${s}</span>`).join('');
+
+            display.innerHTML = `
+                <span class="status-tag">${data.status}</span>
+                ${formattedAnswer}
+                <div style="margin-top: 10px;">${sourcePills}</div>
+                <br><small style="color:#999;">${data.details || ''}</small>
+            `;
+
+            if (data.verification) addLog(data.verification.replace(/\n/g, '<br>'), "#666");
+
+        } catch (e) {
+            display.innerHTML = `<span class="status-tag">ERROR</span>Failed to connect to server.`;
+            addLog(`CRITICAL ERROR: ${e}`, "#f44336");
+        }
     }
 </script>
 </body>
