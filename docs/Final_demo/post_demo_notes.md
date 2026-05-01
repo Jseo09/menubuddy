@@ -16,27 +16,16 @@ The MenuBuddy system successfully demonstrated a complete end-to-end RAG pipelin
 | UI Output | Source labels were not fully cleaned, reducing clarity |
 
 ---
+## Potential Risks and Considerations
 
-## Issues Identified
-
-| Issue | Impact |
-|------|--------|
-| Multi-menu retrieval | Introduced noise in context and reduced grounding accuracy |
-| Overly strict validation | Caused false negatives on valid menu-related queries |
-| Unrefined source labels | Made output less clear and less user-friendly |
-
----
-
-## Improvements for Next Iteration
-
-| Area | Improvement |
-|------|------------|
-| Retrieval | Limit to a single menu source per session to improve relevance |
-| Source Display | Clean and standardize source labels for better readability |
-| Validation | Tune validator to reduce false negatives while maintaining safety |
-| Overall Consistency | Improve alignment between retrieval, generation, and validation |
+| Area | Potential Issue | Impact | Mitigation Strategy |
+|------|----------------|--------|--------------------|
+| Retrieval | Retrieval may pull data from multiple restaurant menus in the same session | Could introduce noise and reduce grounding accuracy | Limit retrieval to a single menu source per session or apply stronger filtering |
+| Validation | Validator may be overly strict in some edge cases | Valid answers could be incorrectly flagged (false negatives) | Fine-tune validation prompts and thresholds |
+| Source Display | Source labels may not always be fully standardized | Could reduce clarity for end users | Improve formatting and consistency of source labels |
+| Generalization | System behavior may vary across different menu formats | Could affect extraction or retrieval quality | Expand testing across diverse menu sources |
 
 ---
 
 ## Conclusion
-The MenuBuddy system demonstrated a robust RAG pipeline from scratch to finish, including menu ingestion, menu retrieval, grounded answer generation with citations, pre-generation safety measures, and post-generation measures. In particular, the MenuBuddy system excelled at answering irrelevant questions (for example, “Who is the CEO?”) with an early refusal and was quite explainable through answer generation that provided citations for support. Nevertheless, during the demo, some valid menu-related questions were marked up since the retrieval module retrieved information about multiple restaurants’ menus, causing noise in context that negatively impacted grounding certainty. Moreover, the source labeling in the interface was not fully cleaned, resulting in unappealing outputs for end users. As possible improvements, we would limit retrieval to one menu source per session and improve our source labeling practices to provide more accurate labels. We would also fine-tune the validator to lower false negatives on valid answers.
+The system successfully met its core objective of delivering grounded, safe, and explainable responses. While the demo did not expose major failures, several potential areas for improvement were identified to further strengthen robustness and consistency in future iterations.
