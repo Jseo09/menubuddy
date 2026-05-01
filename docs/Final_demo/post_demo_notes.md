@@ -20,8 +20,8 @@ The MenuBuddy system successfully demonstrated a complete end-to-end RAG pipelin
 
 | Area | Potential Issue | Impact | Mitigation Strategy |
 |------|----------------|--------|--------------------|
-| Retrieval | Retrieval may pull data from multiple restaurant menus in the same session | Could introduce noise and reduce grounding accuracy | Limit retrieval to a single menu source per session or apply stronger filtering |
-| Validation | Validator may be overly strict in some edge cases | Valid answers could be incorrectly flagged (false negatives) | Fine-tune validation prompts and thresholds |
+| Retrieval Behavior | May retrieve data from multiple restaurant menus in some cases |
+| Validation Results | Valid questions could be flagged if context becomes noisy or mixed |
 | Source Display | Source labels may not always be fully standardized | Could reduce clarity for end users | Improve formatting and consistency of source labels |
 | Generalization | System behavior may vary across different menu formats | Could affect extraction or retrieval quality | Expand testing across diverse menu sources |
 
